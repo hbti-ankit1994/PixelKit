@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14172a"/>
+      <stop offset="100%" stop-color="#070812"/>
+    </linearGradient>
+    <linearGradient id="favBlade1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="favBlade2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="favBlade3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <linearGradient id="favBlade4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#favBg)"/>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+
+  <!-- Glowing Corner Pixels -->
+  <rect x="8" y="8" width="8" height="8" rx="2.5" fill="#38bdf8"/>
+  <rect x="48" y="8" width="8" height="8" rx="2.5" fill="#fb923c"/>
+  <rect x="48" y="48" width="8" height="8" rx="2.5" fill="#c084fc"/>
+  <rect x="8" y="48" width="8" height="8" rx="2.5" fill="#2dd4bf"/>
+
+  <!-- Aperture Iris (Simplified & Bold for small sizes) -->
+  <g transform="translate(32, 32)">
+    <!-- 4 bold interlocking spiral petals -->
+    <path d="M 0,-18 A 18 18 0 0 1 18,0 L 7,0 A 7 7 0 0 0 0,-7 Z" fill="url(#favBlade1)"/>
+    <path d="M 18,0 A 18 18 0 0 1 0,18 L 0,7 A 7 7 0 0 0 7,0 Z" fill="url(#favBlade2)"/>
+    <path d="M 0,18 A 18 18 0 0 1 -18,0 L -7,0 A 7 7 0 0 0 0,7 Z" fill="url(#favBlade3)"/>
+    <path d="M -18,0 A 18 18 0 0 1 0,-18 L 0,-7 A 7 7 0 0 0 -7,0 Z" fill="url(#favBlade4)"/>
+
+    <!-- Central Sparkle Core -->
+    <circle cx="0" cy="0" r="4" fill="#ffffff"/>
+  </g>
+</svg>

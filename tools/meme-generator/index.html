@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en" data-tool="meme-generator">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meme Generator</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:rgba(255,255,255,.78);--fg:#0f172a;--muted:#64748b;--border:rgba(15,23,42,.09);
+  --accent:#6366f1;--accent2:#8b5cf6;--accent-soft:rgba(99,102,241,.1);--field:#fff;
+  --ok:#059669;--err:#dc2626;--shadow:0 1px 2px rgba(15,23,42,.04),0 12px 32px -12px rgba(15,23,42,.14);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b0d14;--card:rgba(24,27,38,.72);--fg:#e8eaf2;--muted:#8a93a8;--border:rgba(255,255,255,.08);
+  --accent:#818cf8;--accent2:#a78bfa;--accent-soft:rgba(129,140,248,.14);--field:rgba(255,255,255,.04);
+  --ok:#34d399;--err:#f87171;--shadow:0 12px 32px -12px rgba(0,0,0,.6);
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light dark}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);
+  font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(60rem 30rem at 10% -10%,rgba(99,102,241,.18),transparent 60%),
+                   radial-gradient(50rem 28rem at 100% 0%,rgba(236,72,153,.13),transparent 60%);
+  background-repeat:no-repeat}
+main{max-width:1400px;margin:0 auto;padding:28px 16px 64px}
+.back{display:inline-flex;gap:6px;margin-bottom:14px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:600}
+.back:hover{color:var(--accent)}
+header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -6px var(--accent)}
+.logo svg{width:26px;height:26px}
+h1{margin:0;font-size:1.75rem;letter-spacing:-.02em;line-height:1.2}
+p.sub{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.workspace{display:grid;grid-template-columns:260px minmax(0,1fr) 330px;gap:18px;align-items:start}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);
+  border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.side{position:sticky;top:16px;margin-bottom:0;max-height:calc(100vh - 32px);overflow:auto}
+h2{margin:0 0 12px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sec+.sec{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+label{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+label span{color:var(--fg);font-variant-numeric:tabular-nums}
+select,textarea,input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);color:var(--fg);font:inherit;outline:none}
+textarea{resize:vertical;min-height:64px}
+select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;margin:10px 0 14px;
+  background:color-mix(in srgb,var(--accent) 25%,var(--border));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;
+  border:4px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:4px solid var(--accent);cursor:pointer}
+input[type=color]{width:100%;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--field);padding:3px;cursor:pointer}
+button{font:inherit;font-weight:600;font-size:.86rem;padding:8px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--field);color:var(--fg);cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(15,23,42,.3)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -8px var(--accent)}
+button.on,button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stagewrap{display:flex;justify-content:center}
+canvas#stage{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;box-shadow:0 10px 30px -12px rgba(15,23,42,.35)}
+.hint{font-size:.82rem;color:var(--muted);margin-top:12px}
+.note{margin-top:10px;padding:9px 12px;border-radius:12px;font-size:.84rem;color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.note.err{color:var(--err);background:color-mix(in srgb,var(--err) 10%,transparent)}
+.layouts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lay{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 4px 7px;border-radius:12px;line-height:1.2}
+.lay .lc{height:58px;width:100%;display:flex;align-items:center;justify-content:center}
+.lay canvas{max-width:100%;max-height:58px;width:auto;height:auto;border-radius:4px;box-shadow:0 2px 6px rgba(15,23,42,.2)}
+.lay span{font-size:.68rem;font-weight:600;color:var(--muted);text-align:center}
+.lay[aria-pressed=true]{box-shadow:0 0 0 2px var(--accent)}
+.lay[aria-pressed=true] span{color:var(--accent)}
+.tlist{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tlist button{padding:5px 11px;font-size:.78rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.emoji{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.emoji button{padding:4px 7px;font-size:1.15rem;line-height:1.1;border-radius:10px}
+.styles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.styles button{padding:5px 10px;font-size:.75rem}
+.chk{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-size:.82rem;color:var(--fg);cursor:pointer;margin:0 0 10px}
+.tplside{position:sticky;top:16px;margin-bottom:0;max-height:calc(100vh - 32px);display:flex;flex-direction:column;padding:16px 14px}
+.tplhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.tplhead h2{margin:0}.tplhead .info{font-size:.78rem;color:var(--muted);font-weight:600}
+.tplside input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);color:var(--fg);font:inherit;outline:none;margin-bottom:10px}
+.tplside input[type=search]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.tabs{display:flex;padding:3px;border-radius:12px;background:var(--accent-soft);margin-bottom:10px}
+.tabs button{flex:1;border:0;background:transparent;box-shadow:none;padding:7px 6px;border-radius:9px;color:var(--muted);font-size:.8rem}
+.tabs button[aria-pressed=true]{background:var(--field);color:var(--accent);box-shadow:0 1px 4px rgba(15,23,42,.18)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.chips button{padding:3px 9px;font-size:.7rem;border-radius:99px;color:var(--muted)}
+.chips button[aria-pressed=true]{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}
+.tplgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;overflow:auto;flex:1;min-height:160px;padding:3px}
+.tcard{display:flex;flex-direction:column;gap:5px;padding:5px 5px 7px;border-radius:12px;text-align:left;line-height:1.2}
+.tcard .im{aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--accent-soft);display:grid;place-items:center}
+.tcard img{width:100%;height:100%;object-fit:cover;display:block}
+.tcard span{font-size:.7rem;font-weight:600;color:var(--muted);padding:0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tcard:hover span{color:var(--accent)}
+.tcard[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+.tcard[aria-pressed=true] span{color:var(--accent)}
+.tplfoot{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);line-height:1.45}
+.tplmsg{padding:24px 8px;color:var(--muted);text-align:center;font-size:.86rem}
+@media (max-width:1260px){.workspace{grid-template-columns:minmax(0,1fr) 330px}
+  .tplside{grid-column:1/-1;position:static;max-height:430px}.tplgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+@media (max-width:960px){.workspace{grid-template-columns:1fr}.side{position:static;max-height:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="../../assets/theme.css">
+</head>
+<body>
+<main>
+  <nav class="topbar">
+    <a class="brand" href="../../index.html"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <a class="back" href="../../index.html">← All tools</a>
+  </nav>
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
+    <div><h1>Meme Generator</h1><p class="sub">Pick a popular meme template or use your own pictures, caption them, then download or copy.</p></div>
+  </header>
+
+  <div class="workspace">
+    <aside class="card tplside" aria-label="Meme templates">
+      <div class="tabs" role="tablist"><button id="tabTech" aria-pressed="true">Tech memes</button><button id="tabAll" aria-pressed="false">All templates</button></div>
+      <div class="tplhead"><h2 id="tplTitle">Dev &amp; tech humour</h2><span class="info" id="tplCount"></span></div>
+      <input type="search" id="tplQ" placeholder="Search: git, deploy, manager…" autocomplete="off" aria-label="Search memes">
+      <div class="chips" id="techCats"></div>
+      <div class="tplgrid" id="tplGrid"></div>
+      <div class="tplfoot">Templates load live from <b>memegen.link</b> and <b>imgflip.com</b> and are not stored in this app. Tech captions are original. Images belong to their original owners: personal fun only. Your own pictures and captions never leave your device.</div>
+    </aside>
+    <section>
+      <div class="card">
+        <div class="stagewrap"><canvas id="stage" aria-label="Meme canvas"></canvas></div>
+        <div class="row" style="margin-top:14px">
+          <button class="primary" id="bAdd">Add images</button>
+          <button id="bAddText">+ Add text</button>
+          <button id="bClearImg">Remove images</button>
+        </div>
+        <div class="hint">Pick a template on the left, or click an empty slot / drop your own pictures onto it. Drag text to move it. Drag a picture to reposition it and scroll to zoom. Click text to edit it in the panel.</div>
+        <div class="note" id="note" hidden></div>
+        <input type="file" id="fileAdd" accept="image/*" multiple hidden>
+        <input type="file" id="fileSlot" accept="image/*" hidden>
+      </div>
+    </section>
+
+    <aside class="card side">
+      <div class="sec"><h2>Layout</h2><div class="layouts" id="layouts"></div></div>
+
+      <div class="sec">
+        <h2>Text</h2>
+        <div class="tlist" id="tlist"></div>
+        <div id="tprops">
+          <textarea id="ttext" aria-label="Text" placeholder="Type your caption"></textarea>
+          <div class="styles" id="styles" style="margin-top:10px"></div>
+          <div class="two">
+            <div><label for="tfont">Font</label><select id="tfont"><option value="impact">Impact (classic)</option><option value="bold">Bold sans</option><option value="comic">Comic</option><option value="serif">Serif</option><option value="type">Typewriter</option></select></div>
+            <div><label for="talign">Align</label><select id="talign"><option value="center">Centre</option><option value="left">Left</option><option value="right">Right</option></select></div>
+          </div>
+          <label for="tsize" style="margin-top:12px">Size <span id="tsizev"></span></label><input id="tsize" type="range" min="14" max="220">
+          <label for="tw">Box width <span id="twv"></span></label><input id="tw" type="range" min="15" max="100">
+          <label for="trot">Rotation <span id="trotv"></span></label><input id="trot" type="range" min="-45" max="45">
+          <div class="two">
+            <div><label for="tcolor">Fill</label><input type="color" id="tcolor"></div>
+            <div><label for="tstroke">Outline</label><input type="color" id="tstroke"></div>
+          </div>
+          <label for="tsw" style="margin-top:12px">Outline thickness <span id="tswv"></span></label><input id="tsw" type="range" min="0" max="12">
+          <label class="chk"><input type="checkbox" id="tcaps"> UPPERCASE</label>
+          <label class="chk"><input type="checkbox" id="tfit"> Shrink long words to fit</label>
+          <button id="bDelText" style="width:100%">Delete this text</button>
+        </div>
+        <div class="emoji" id="emoji" aria-label="Add emoji"></div>
+      </div>
+
+      <div class="sec">
+        <h2>Canvas</h2>
+        <label for="bg">Background colour (gaps, empty slots)</label><input type="color" id="bg" value="#ffffff">
+      </div>
+
+      <div class="sec">
+        <h2>Download</h2>
+        <div class="row" style="margin-bottom:12px">
+          <select id="xfmt" style="flex:1"><option value="png">PNG</option><option value="jpeg">JPEG</option></select>
+          <select id="xsize" style="flex:1"><option value="800">800 px wide</option><option value="1000" selected>1000 px wide</option><option value="1500">1500 px wide</option><option value="2000">2000 px wide</option></select>
+        </div>
+        <div class="row"><button class="primary" id="bExport" style="flex:1">Download meme</button><button id="bCopy" style="flex:1">Copy image</button></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- fonts & text styles ---------- */
+const EMOJI_FONTS = ",'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'";
+const FONTS = {
+  impact: {w:"normal", f:"Impact,Haettenschweiler,'Arial Narrow Bold','Arial Black',sans-serif"},
+  bold:   {w:"800",    f:"'Segoe UI','Helvetica Neue',Arial,sans-serif"},
+  comic:  {w:"bold",   f:"'Comic Sans MS','Chalkboard SE','Comic Neue',cursive"},
+  serif:  {w:"bold",   f:"Georgia,'Times New Roman',serif"},
+  type:   {w:"bold",   f:"'Courier New',Courier,monospace"},
+};
+const STYLES = {
+  "Classic":      {font:"impact", color:"#ffffff", stroke:"#000000", sw:8, caps:true},
+  "Black text":   {font:"bold",   color:"#111111", stroke:"#ffffff", sw:0, caps:false},
+  "White text":   {font:"bold",   color:"#ffffff", stroke:"#000000", sw:0, caps:false},
+  "Yellow":       {font:"impact", color:"#ffe14d", stroke:"#000000", sw:7, caps:true},
+  "Comic":        {font:"comic",  color:"#ffffff", stroke:"#1a1a1a", sw:6, caps:false},
+};
+const fontStr = (it, fs) => { const f = FONTS[it.font]; return `${f.w} ${fs}px ${f.f}${EMOJI_FONTS}`; };
+
+/* ---------- layouts: geometry in a 1000px-wide space ---------- */
+const BAR = 190;
+const LAYOUTS = [
+  {id:"classic", name:"Classic", slots:1, bg:"#000000", build: ar => { const H = Math.round(1000/ar);
+    return {W:1000, H, slots:[[0,0,1000,H]], bars:[], texts:[{t:"WHEN THE CODE WORKS", x:.5, y:.12, s:92, w:.94, st:"Classic"}, {t:"ON THE FIRST TRY", x:.5, y:.88, s:92, w:.94, st:"Classic"}]}; }},
+  {id:"topbar", name:"Caption on top", slots:1, bg:"#ffffff", build: ar => { const ih = Math.round(1000/ar), H = BAR + ih;
+    return {W:1000, H, slots:[[0,BAR,1000,ih]], bars:[[0,0,1000,BAR,"#ffffff"]], texts:[{t:"Me explaining my plan to everyone", x:.5, y:BAR/2/H, s:56, w:.92, st:"Black text", align:"left"}]}; }},
+  {id:"botbar", name:"Caption below", slots:1, bg:"#000000", build: ar => { const ih = Math.round(1000/ar), H = BAR + ih;
+    return {W:1000, H, slots:[[0,0,1000,ih]], bars:[[0,ih,1000,BAR,"#000000"]], texts:[{t:"When nobody laughs at your joke", x:.5, y:(ih + BAR/2)/H, s:56, w:.92, st:"White text"}]}; }},
+  {id:"stack2", name:"Two stacked", slots:2, bg:"#000000", build: () => ({W:1000, H:1120, slots:[[0,0,1000,560],[0,560,1000,560]], bars:[],
+    texts:[{t:"EXPECTATION", x:.5, y:.46, s:84, w:.94, st:"Classic"}, {t:"REALITY", x:.5, y:.96, s:84, w:.94, st:"Classic"}]})},
+  {id:"side2", name:"Side by side", slots:2, bg:"#000000", build: () => ({W:1000, H:560, slots:[[0,0,500,560],[500,0,500,560]], bars:[],
+    texts:[{t:"HOW I SEE IT", x:.25, y:.9, s:52, w:.46, st:"Classic"}, {t:"HOW IT IS", x:.75, y:.9, s:52, w:.46, st:"Classic"}]})},
+  {id:"grid4", name:"Four panels", slots:4, bg:"#000000", build: () => ({W:1000, H:1000, slots:[[0,0,500,500],[500,0,500,500],[0,500,500,500],[500,500,500,500]], bars:[],
+    texts:[{t:"MONDAY", x:.25, y:.45, s:50, w:.46, st:"Classic"}, {t:"TUESDAY", x:.75, y:.45, s:50, w:.46, st:"Classic"}, {t:"WEDNESDAY", x:.25, y:.95, s:50, w:.46, st:"Classic"}, {t:"FRIDAY", x:.75, y:.95, s:50, w:.46, st:"Classic"}]})},
+  {id:"strip3", name:"Comic strip", slots:3, bg:"#000000", build: () => ({W:1000, H:440, slots:[[0,0,334,440],[333,0,334,440],[666,0,334,440]], bars:[],
+    texts:[{t:"FIRST", x:.167, y:.88, s:44, w:.3, st:"Classic"}, {t:"THEN", x:.5, y:.88, s:44, w:.3, st:"Classic"}, {t:"FINALLY", x:.833, y:.88, s:44, w:.3, st:"Classic"}]})},
+  {id:"panelR", name:"Picture + text", slots:1, bg:"#ffffff", build: ar => { const H = Math.round(500/clamp(ar, .4, 2));
+    return {W:1000, H, slots:[[0,0,500,H]], bars:[], texts:[{t:"Option one", x:.75, y:.25, s:52, w:.44, st:"Black text", align:"left"}, {t:"Option two", x:.75, y:.75, s:52, w:.44, st:"Black text", align:"left"}]}; }},
+  {id:"rows2", name:"Choice rows", slots:2, bg:"#ffffff", build: () => ({W:1000, H:800, slots:[[0,0,400,400],[0,400,400,400]], bars:[],
+    texts:[{t:"Doing it the hard way", x:.7, y:.25, s:60, w:.52, st:"Black text", align:"left"}, {t:"Doing it the smart way", x:.7, y:.75, s:60, w:.52, st:"Black text", align:"left"}]})},
+  {id:"ladder4", name:"Four levels", slots:4, bg:"#ffffff", build: () => ({W:1000, H:1200, slots:[[560,0,440,300],[560,300,440,300],[560,600,440,300],[560,900,440,300]], bars:[],
+    texts:[{t:"Normal idea", x:.28, y:.125, s:50, w:.5, st:"Black text", align:"left"}, {t:"Better idea", x:.28, y:.375, s:50, w:.5, st:"Black text", align:"left"}, {t:"Smarter idea", x:.28, y:.625, s:50, w:.5, st:"Black text", align:"left"}, {t:"Galaxy-brain idea", x:.28, y:.875, s:50, w:.5, st:"Black text", align:"left"}]})},
+];
+
+/* ---------- state ---------- */
+const state = {layout:LAYOUTS[0], slots:[{img:null, zoom:1, ox:0, oy:0}], items:[], sel:null, bg:"#ffffff"};
+let seq = 0, G = null, hits = [], drag = null, hoverSlot = -1, pickSlot = -1;
+const scratch = document.createElement("canvas").getContext("2d");
+
+function geom(){
+  const first = state.slots[0] && state.slots[0].img, ar = first ? clamp(first.w/first.h, .5, 2.2) : 1.25;
+  return state.layout.build(ar);
+}
+function applyLayout(L, keepText){
+  const old = state.items.map(i => i.text);
+  state.layout = L;
+  const n = L.slots, prev = state.slots; state.slots = Array.from({length:n}, (_, i) => prev[i] || {img:null, zoom:1, ox:0, oy:0});
+  // pictures that no longer have a slot are dropped from view but stay available via the file picker
+  const g = L.build(1.25);
+  state.items = g.texts.map((t, i) => {
+    const st = STYLES[t.st];
+    return {id:++seq, text:keepText && old[i] !== undefined ? old[i] : t.t, x:t.x, y:t.y, size:t.s, w:t.w, rot:0, align:t.align || "center",
+      font:st.font, color:st.color, stroke:st.stroke, sw:st.sw, caps:st.caps, fit:true};
+  });
+  state.sel = state.items[0] ? state.items[0].id : null;
+  state.bg = L.bg; $("bg").value = L.bg;
+  syncLayouts(); syncTexts(); draw();
+}
+
+/* ---------- text layout ---------- */
+function layoutText(ctx, it, W, H){
+  const txt = it.caps ? it.text.toUpperCase() : it.text, maxW = it.w*W; let fs = it.size;
+  const words = txt.split(/\s+/).filter(Boolean);
+  if (it.fit){ ctx.font = fontStr(it, 100); const widest = Math.max(1, ...words.map(w => ctx.measureText(w).width)); fs = Math.min(fs, 100*maxW/widest); }
+  const wrap = size => {
+    ctx.font = fontStr(it, size); const out = [];
+    for (const para of txt.split("\n")){
+      let line = "";
+      for (const w of para.split(/\s+/).filter(Boolean)){
+        const test = line ? line + " " + w : w;
+        if (line && ctx.measureText(test).width > maxW){ out.push(line); line = w; } else line = test;
+      }
+      out.push(line);
+    }
+    return out;
+  };
+  let lines = wrap(fs);
+  if (it.fit && it.bh){                                   // template text boxes have a fixed height: shrink until the caption fits it
+    const maxH = it.bh*H*1.1;
+    for (let k = 0; k < 40 && lines.length*fs*1.12 > maxH && fs > 14; k++){ fs *= .93; lines = wrap(fs); }
+  }
+  ctx.font = fontStr(it, fs);
+  const lh = fs*1.12, width = Math.min(maxW, Math.max(...lines.map(l => ctx.measureText(l).width), 10));
+  return {lines, fs, lh, width, height:lines.length*lh};
+}
+function drawText(ctx, it, W, H, selected, k){
+  const m = layoutText(ctx, it, W, H), cx = it.x*W, cy = it.y*H, maxW = it.w*W;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(it.rot*Math.PI/180);
+  ctx.font = fontStr(it, m.fs); ctx.textBaseline = "middle"; ctx.textAlign = it.align; ctx.lineJoin = "round"; ctx.miterLimit = 2;
+  const ax = it.align === "left" ? -maxW/2 : it.align === "right" ? maxW/2 : 0;
+  m.lines.forEach((l, i) => {
+    const y = (i - (m.lines.length - 1)/2)*m.lh;
+    if (it.sw > 0){ ctx.lineWidth = m.fs*it.sw/32; ctx.strokeStyle = it.stroke; ctx.strokeText(l, ax, y); }
+    ctx.fillStyle = it.color; ctx.fillText(l, ax, y);
+  });
+  if (selected){
+    ctx.setLineDash([8*k, 6*k]); ctx.lineWidth = 2*k; ctx.strokeStyle = "#6366f1";
+    const bw = Math.max(m.width, maxW*.35) + 24*k, bh = m.height + 12*k;
+    ctx.strokeRect(-bw/2, -bh/2, bw, bh);
+  }
+  ctx.restore();
+  return {m, cx, cy};
+}
+
+/* ---------- drawing ---------- */
+function limits(slot, r){
+  const im = slot.img, sc = Math.max(r.w/im.w, r.h/im.h)*slot.zoom;
+  return {mx:Math.max(0, (im.w*sc - r.w)/2), my:Math.max(0, (im.h*sc - r.h)/2), sc};
+}
+function render(ctx, g, s, preview){
+  ctx.save(); ctx.scale(s, s); ctx.imageSmoothingQuality = "high";
+  const k = preview ? g.W/($("stage").getBoundingClientRect().width || g.W) : 1;
+  ctx.fillStyle = state.bg; ctx.fillRect(0, 0, g.W, g.H);
+  for (const [x, y, w, h, c] of g.bars){ ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+  g.slots.forEach(([x, y, w, h], i) => {
+    const slot = state.slots[i], r = {x, y, w, h};
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    if (slot && slot.img){
+      const {mx, my, sc} = limits(slot, r), dw = slot.img.w*sc, dh = slot.img.h*sc;
+      ctx.drawImage(slot.img.bmp, x + (w - dw)/2 + clamp(slot.ox*w, -mx, mx), y + (h - dh)/2 + clamp(slot.oy*h, -my, my), dw, dh);
+    } else {
+      ctx.fillStyle = preview ? "#d9dce6" : "#e5e7eb"; ctx.fillRect(x, y, w, h);
+      if (preview){
+        const cx = x + w/2, cy = y + h/2, hl = i === hoverSlot;
+        if (hl){ ctx.fillStyle = "rgba(99,102,241,.18)"; ctx.fillRect(x, y, w, h); }
+        ctx.strokeStyle = "#7b8296"; ctx.lineWidth = 3*k; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(cx - 16*k, cy); ctx.lineTo(cx + 16*k, cy); ctx.moveTo(cx, cy - 16*k); ctx.lineTo(cx, cy + 16*k); ctx.stroke();
+        if (w > 220*k && h > 120*k){ ctx.fillStyle = "#6b7285"; ctx.font = `${15*k}px system-ui,sans-serif`; ctx.textAlign = "center"; ctx.fillText("Click or drop a picture", cx, cy + 40*k); }
+      }
+    }
+    ctx.restore();
+  });
+  hits = [];
+  for (const it of state.items){
+    const r = drawText(ctx, it, g.W, g.H, preview && it.id === state.sel, k);
+    hits.push({it, ...r});
+  }
+  ctx.restore();
+}
+let raf = 0;
+function draw(){ if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(); }); }
+function paint(){
+  G = geom(); const cv = $("stage"), pxr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.round(G.W*pxr), h = Math.round(G.H*pxr);
+  if (cv.width !== w || cv.height !== h){ cv.width = w; cv.height = h; }
+  cv.style.width = `min(100%, ${(72*G.W/G.H).toFixed(1)}vh)`;
+  const ctx = cv.getContext("2d"); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  render(ctx, G, pxr, true);
+}
+
+/* ---------- images ---------- */
+function note(text, isErr){ const n = $("note"); n.hidden = !text; n.textContent = text || ""; n.classList.toggle("err", !!isErr); }
+async function loadImage(file){
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch { bmp = await new Promise((res, rej) => { const u = URL.createObjectURL(file), i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; }); }
+  let w = bmp.width || bmp.naturalWidth || 512, h = bmp.height || bmp.naturalHeight || 512;
+  const m = Math.max(w, h);
+  if (m > 3000){ const f = 3000/m, c = document.createElement("canvas"); c.width = Math.round(w*f); c.height = Math.round(h*f);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); if (bmp.close) bmp.close(); bmp = c; w = c.width; h = c.height; }
+  return {bmp, w, h};
+}
+async function addFiles(files, target){
+  const list = [...files].filter(f => f.type.startsWith("image/")); let bad = 0;
+  if (!list.length){ note("That isn't an image.", true); return; }
+  let first = true;
+  for (const f of list){
+    if (f.size > 30*1048576){ bad++; continue; }
+    let slotIdx = first && target >= 0 ? target : state.slots.findIndex(s => !s.img);
+    first = false;
+    if (slotIdx < 0) slotIdx = target >= 0 ? target : 0;     // all filled: replace the targeted/first slot
+    try { state.slots[slotIdx] = {img:await loadImage(f), zoom:1, ox:0, oy:0}; } catch { bad++; }
+  }
+  note(bad ? `${bad} file${bad > 1 ? "s were" : " was"} skipped (not readable or over 30 MB).` : "", !!bad);
+  draw();
+}
+
+/* ---------- text panel ---------- */
+const sel = () => state.items.find(i => i.id === state.sel) || null;
+function syncLayouts(){ document.querySelectorAll(".lay").forEach(b => b.setAttribute("aria-pressed", b._l === state.layout)); }
+function syncTexts(){
+  const box = $("tlist"); box.replaceChildren();
+  state.items.forEach((it, i) => {
+    const b = document.createElement("button"); b.textContent = (it.text.trim() || "(empty)").slice(0, 18); b.setAttribute("aria-pressed", it.id === state.sel);
+    b.onclick = () => { state.sel = it.id; syncTexts(); draw(); }; box.append(b);
+  });
+  const it = sel(), has = !!it; $("tprops").hidden = !has;
+  if (!has) return;
+  $("ttext").value = it.text; $("tfont").value = it.font; $("talign").value = it.align;
+  $("tsize").value = it.size; $("tsizev").textContent = Math.round(it.size);
+  $("tw").value = Math.round(it.w*100); $("twv").textContent = Math.round(it.w*100) + "%";
+  $("trot").value = it.rot; $("trotv").textContent = it.rot + "°";
+  $("tcolor").value = it.color; $("tstroke").value = it.stroke; $("tsw").value = it.sw; $("tswv").textContent = it.sw;
+  $("tcaps").checked = it.caps; $("tfit").checked = it.fit;
+}
+function addText(text = "New text", over = {}){
+  const it = {id:++seq, text, x:.5, y:.5, size:80, w:.9, rot:0, align:"center", ...STYLES.Classic, sw:STYLES.Classic.sw, fit:true, ...over};
+  it.font = over.font || STYLES.Classic.font; it.color = over.color || STYLES.Classic.color; it.stroke = over.stroke || STYLES.Classic.stroke;
+  state.items.push(it); state.sel = it.id; syncTexts(); draw(); return it;
+}
+const bind = (id, fn, ev = "input") => $(id)[ev === "change" ? "onchange" : "oninput"] = e => { const it = sel(); if (!it) return; fn(it, e.target); syncLabelsOnly(it); draw(); };
+function syncLabelsOnly(it){
+  $("tsizev").textContent = Math.round(it.size); $("twv").textContent = Math.round(it.w*100) + "%"; $("trotv").textContent = it.rot + "°"; $("tswv").textContent = it.sw;
+  const b = $("tlist").children[state.items.indexOf(it)]; if (b) b.textContent = (it.text.trim() || "(empty)").slice(0, 18);
+}
+bind("ttext", (it, el) => it.text = el.value);
+bind("tfont", (it, el) => it.font = el.value, "change");
+bind("talign", (it, el) => it.align = el.value, "change");
+bind("tsize", (it, el) => it.size = +el.value);
+bind("tw", (it, el) => it.w = +el.value/100);
+bind("trot", (it, el) => it.rot = +el.value);
+bind("tcolor", (it, el) => it.color = el.value);
+bind("tstroke", (it, el) => it.stroke = el.value);
+bind("tsw", (it, el) => it.sw = +el.value);
+bind("tcaps", (it, el) => it.caps = el.checked, "change");
+bind("tfit", (it, el) => it.fit = el.checked, "change");
+$("bDelText").onclick = () => { const it = sel(); if (!it) return; state.items = state.items.filter(i => i !== it); state.sel = state.items.length ? state.items[state.items.length - 1].id : null; syncTexts(); draw(); };
+$("bAddText").onclick = () => { addText("New text"); $("ttext").focus(); $("ttext").select(); };
+
+for (const [name, st] of Object.entries(STYLES)){
+  const b = document.createElement("button"); b.textContent = name;
+  b.onclick = () => { const it = sel(); if (!it) return; Object.assign(it, {font:st.font, color:st.color, stroke:st.stroke, sw:st.sw, caps:st.caps}); syncTexts(); draw(); };
+  $("styles").append(b);
+}
+for (const e of ["😂", "🤣", "😭", "😎", "🤔", "🙄", "😡", "🥲", "🔥", "💀", "👀", "👍", "🙏", "❤️", "💯", "✨", "🎉", "🤡", "🧠", "🚀"]){
+  const b = document.createElement("button"); b.textContent = e; b.title = "Add " + e;
+  b.onclick = () => addText(e, {size:170, w:.5, sw:0, caps:false}); $("emoji").append(b);
+}
+LAYOUTS.forEach(L => {
+  const b = document.createElement("button"); b.className = "lay"; b._l = L; b.title = L.name;
+  const g = L.build(1.25), s = 120/Math.max(g.W, g.H), c = document.createElement("canvas"); c.width = Math.round(g.W*s); c.height = Math.round(g.H*s);
+  const x = c.getContext("2d"); x.scale(s, s); x.fillStyle = L.bg; x.fillRect(0, 0, g.W, g.H);
+  for (const [bx, by, bw, bh, col] of g.bars){ x.fillStyle = col; x.fillRect(bx, by, bw, bh); }
+  g.slots.forEach(([sx, sy, sw, sh], i) => { x.fillStyle = ["#8b95b0", "#a2a9c2", "#7a86a6", "#9aa3be"][i % 4]; x.fillRect(sx + 3, sy + 3, sw - 6, sh - 6); });
+  for (const t of g.texts){ x.fillStyle = L.bg === "#ffffff" || t.st === "Black text" ? "#222" : "#fff"; x.fillRect(t.x*g.W - g.W*t.w*.3, t.y*g.H - 9, g.W*t.w*.6, 18); }
+  const box = document.createElement("div"); box.className = "lc"; box.append(c);
+  const sp = document.createElement("span"); sp.textContent = L.name; b.append(box, sp);
+  b.onclick = () => applyLayout(L, true); $("layouts").append(b);
+});
+
+/* ---------- pointer interaction ---------- */
+const cv = $("stage");
+const pt = e => { const r = cv.getBoundingClientRect(); return {x:(e.clientX - r.left)*G.W/r.width, y:(e.clientY - r.top)*G.H/r.height, k:G.W/r.width}; };
+function pickText(p){
+  for (let i = hits.length - 1; i >= 0; i--){
+    const h = hits[i], a = -h.it.rot*Math.PI/180, dx = p.x - h.cx, dy = p.y - h.cy;
+    const lx = dx*Math.cos(a) - dy*Math.sin(a), ly = dx*Math.sin(a) + dy*Math.cos(a);
+    const bw = Math.max(h.m.width, h.it.w*G.W*.35)/2 + 14*p.k, bh = h.m.height/2 + 8*p.k;
+    if (Math.abs(lx) <= bw && Math.abs(ly) <= bh) return h.it;
+  }
+  return null;
+}
+const slotAt = p => G.slots.findIndex(([x, y, w, h]) => p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h);
+cv.addEventListener("pointerdown", e => {
+  if (!G) return; const p = pt(e); cv.setPointerCapture(e.pointerId);
+  const t = pickText(p);
+  if (t){ state.sel = t.id; syncTexts(); drag = {type:"text", it:t, dx:t.x*G.W - p.x, dy:t.y*G.H - p.y}; draw(); return; }
+  const si = slotAt(p);
+  if (si >= 0 && state.slots[si].img){
+    const s = state.slots[si], [x, y, w, h] = G.slots[si], {mx, my} = limits(s, {x, y, w, h});
+    s.ox = clamp(s.ox, -mx/w, mx/w); s.oy = clamp(s.oy, -my/h, my/h);
+    drag = {type:"pan", si, sx:p.x, sy:p.y, ox:s.ox, oy:s.oy, moved:false};
+  } else drag = {type:"slot", si, moved:false, sx:p.x, sy:p.y};
+});
+cv.addEventListener("pointermove", e => {
+  if (!G) return; const p = pt(e);
+  if (drag){
+    if (drag.type === "text"){ drag.it.x = clamp((p.x + drag.dx)/G.W, 0, 1); drag.it.y = clamp((p.y + drag.dy)/G.H, 0, 1); draw(); }
+    else if (drag.type === "pan"){
+      const dx = p.x - drag.sx, dy = p.y - drag.sy; if (Math.hypot(dx, dy) > 4*p.k) drag.moved = true;
+      const s = state.slots[drag.si], [x, y, w, h] = G.slots[drag.si], {mx, my} = limits(s, {x, y, w, h});
+      if (drag.moved){ s.ox = clamp(drag.ox + dx/w, -mx/w, mx/w); s.oy = clamp(drag.oy + dy/h, -my/h, my/h); draw(); }
+    } else if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 4*p.k) drag.moved = true;
+    return;
+  }
+  const t = pickText(p), si = t ? -1 : slotAt(p);
+  if (si !== hoverSlot){ hoverSlot = si; draw(); }
+  cv.style.cursor = t ? "move" : si >= 0 ? (state.slots[si].img ? "grab" : "pointer") : "default";
+});
+cv.addEventListener("pointerup", () => {
+  if (drag && drag.type === "slot" && !drag.moved && drag.si >= 0){ pickSlot = drag.si; $("fileSlot").click(); }
+  drag = null; draw();
+});
+cv.addEventListener("pointerleave", () => { if (!drag && hoverSlot !== -1){ hoverSlot = -1; draw(); } });
+cv.addEventListener("dblclick", e => { const si = slotAt(pt(e)); if (si >= 0 && state.slots[si].img && !pickText(pt(e))){ pickSlot = si; $("fileSlot").click(); } });
+cv.addEventListener("wheel", e => {
+  if (!G) return; const p = pt(e); if (pickText(p)) return; const si = slotAt(p);
+  if (si < 0 || !state.slots[si].img) return; e.preventDefault();
+  state.slots[si].zoom = clamp(state.slots[si].zoom*Math.exp(-e.deltaY*.0015), 1, 5); draw();
+}, {passive:false});
+cv.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")){ e.preventDefault(); const si = slotAt(pt(e)); if (si !== hoverSlot){ hoverSlot = si; draw(); } } });
+cv.addEventListener("dragleave", () => { hoverSlot = -1; draw(); });
+cv.addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); const si = slotAt(pt(e)); hoverSlot = -1; addFiles(e.dataTransfer.files, si); });
+window.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) e.preventDefault(); });
+window.addEventListener("drop", e => { if (e.dataTransfer.files.length){ e.preventDefault(); addFiles(e.dataTransfer.files, -1); } });
+window.addEventListener("paste", e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) addFiles(fs, -1); });
+window.addEventListener("keydown", e => {
+  if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== "range") return;
+  if ((e.key === "Delete" || e.key === "Backspace") && sel()){ e.preventDefault(); $("bDelText").click(); }
+});
+
+/* ---------- controls ---------- */
+$("bAdd").onclick = () => $("fileAdd").click();
+$("fileAdd").onchange = e => { addFiles(e.target.files, -1); e.target.value = ""; };
+$("fileSlot").onchange = e => { addFiles(e.target.files, pickSlot); e.target.value = ""; };
+$("bClearImg").onclick = () => { state.slots = state.slots.map(() => ({img:null, zoom:1, ox:0, oy:0})); note(""); draw(); };
+$("bg").oninput = e => { state.bg = e.target.value; draw(); };
+
+async function exportBlob(){
+  const fmt = $("xfmt").value, mime = "image/" + fmt, g = geom(), s = +$("xsize").value/g.W;
+  const c = document.createElement("canvas"); c.width = Math.round(g.W*s); c.height = Math.round(g.H*s);
+  render(c.getContext("2d"), g, s, false);
+  return {blob:await new Promise(r => c.toBlob(r, mime, .92)), fmt, w:c.width, h:c.height};
+}
+const stillLoading = () => { if (state.slots.some(sl => sl.img && sl.img.placeholder)){ note("The template is still loading in full quality. Try again in a moment.", true); return true; } return false; };
+$("bExport").onclick = async () => {
+  if (stillLoading()) return;
+  const {blob, fmt, w, h} = await exportBlob(); if (!blob){ note("Couldn't create the image.", true); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "meme." + (fmt === "jpeg" ? "jpg" : fmt); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000); note(`Saved ${w}×${h} ${fmt.toUpperCase()}.`);
+};
+$("bCopy").onclick = async () => {
+  if (stillLoading()) return;
+  try {
+    const g = geom(), s = Math.min(1500, +$("xsize").value)/g.W, c = document.createElement("canvas"); c.width = Math.round(g.W*s); c.height = Math.round(g.H*s);
+    render(c.getContext("2d"), g, s, false);
+    const blob = await new Promise(r => c.toBlob(r, "image/png"));
+    await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]); note("Copied to the clipboard.");
+  } catch { note("Your browser blocked copying. Use Download instead.", true); }
+};
+
+
+/* ---------- meme templates (loaded live from memegen.link and imgflip.com) ---------- */
+// TPL_BOXES: where each memegen template wants its text (from memegen's own template configs).
+// TECH: ready-made developer-humour captions mapped to those templates.
+const TPL_BOXES = {"3hd":[[0.0,0.65,0.27,0.13,0,1,0.0],[0.365,0.55,0.27,0.13,0,1,0.0],[0.73,0.6,0.27,0.13,0,1,0.0]],"aag":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ackbar":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"afraid":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"agnes":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"aint-got-time":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ams":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ants":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"apcr":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"astronaut":[[0.45,0.35,0.25,0.1,0,0,0.0],[0.75,0.0,0.25,0.1,0,0,0.0],[0.375,0.8,0.25,0.1,0,0,0.0],[0.75,0.7,0.25,0.1,0,0,0.0]],"atis":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"away":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"awesome":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"awesome-awkward":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"awkward":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"awkward-awesome":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bad":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"badchoice":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"balloon":[[0.61,0.1,0.39,0.2,1,1,0.0],[0.8,0.57,0.39,0.2,1,1,0.0],[0.0,0.7,0.27,0.2,1,1,0.0]],"bd":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"because":[[0.0,0.375,1.0,0.125,0,0,0.0],[0.0,0.875,1.0,0.125,0,0,0.0]],"bender":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bihw":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bilbo":[[0.0,0.4,1.0,0.1,0,0,0.0],[0.0,0.9,1.0,0.1,0,0,0.0]],"biw":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"blb":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"boat":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bongo":[[0.0,0.0,0.48,0.5,1,0,0.0],[0.0,0.5,0.48,0.5,1,0,0.0]],"both":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.75,1.0,0.2,0,1,0.0]],"box":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bs":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"bus":[[0.0,0.25,0.4,0.3,0,1,0.0],[0.5,0.16,0.4,0.3,0,1,0.0]],"buzz":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"cake":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"captain":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"captain-america":[[0.0,0.23,1.0,0.1,0,0,0.0],[0.0,0.57,0.4,0.08,0,0,0.0],[0.5,0.56,0.5,0.1,0,0,0.0]],"cb":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"cbb":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"cbg":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"center":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ch":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"chair":[[0.0,0.2,0.495,0.13,0,0,0.0],[0.495,0.2,0.505,0.13,0,0,0.0],[0.0,0.535,0.495,0.13,0,0,0.0],[0.495,0.525,0.505,0.14,0,0,0.0],[0.0,0.87,0.5,0.13,0,1,0.0],[0.5,0.87,0.5,0.13,0,1,0.0]],"cheems":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"chosen":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"cmm":[[0.351,0.434,0.46,0.25,1,1,23.0]],"country":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"crazypills":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"crow":[[0.325,0.02,0.15,0.15,1,1,0.0],[0.634,0.75,0.3,0.2,1,1,12.0]],"crowd":[[0.15,0.057,0.38,0.3,0,1,8.0],[0.061,0.057,0.38,0.3,0,1,8.0]],"cryingfloor":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"db":[[0.12,0.7,0.325,0.1,0,0,0.0],[0.55,0.45,0.175,0.1,0,0,0.0],[0.74,0.66,0.2,0.1,0,0,0.0]],"dbg":[[0.0,0.0,0.48,0.5,1,0,0.0],[0.0,0.5,0.48,0.5,1,0,0.0]],"dg":[[0.02,0.6,0.35,0.2,0,0,0.0],[0.45,0.75,0.25,0.15,0,0,0.0],[0.75,0.65,0.225,0.15,0,0,0.0]],"disastergirl":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"dodgson":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"doge":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"dragon":[[0.22,0.505,0.25,0.119,1,1,0.0]],"drake":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"drowning":[[0.03,0.33,0.46,0.15,0,0,0.0],[0.51,0.14,0.2,0.2,0,0,0.0],[0.03,0.82,0.46,0.15,0,0,0.0]],"drunk":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ds":[[0.097,0.108,0.32,0.095,1,0,12.5],[0.467,0.069,0.23,0.09,1,0,10.5],[0.04,0.82,0.92,0.15,0,1,0.0]],"dsm":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"dwight":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"elf":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"elmo":[[0.0,0.24,0.3,0.25,0,0,0.0],[0.35,0.21,0.3,0.17,0,0,0.0],[0.59,0.39,0.3,0.1,0,0,0.0],[0.0,0.69,0.3,0.25,0,0,0.0],[0.59,0.87,0.3,0.1,0,0,0.0]],"ermg":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"exit":[[0.24,0.15,0.15,0.22,0,0,0.0],[0.53,0.15,0.22,0.22,0,0,0.0],[0.466,0.879,0.32,0.1,0,0,9.0]],"fa":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"facepalm":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"fbf":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"feelsgood":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"fetch":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"fine":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"firsttry":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"fmr":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"friends":[[0.257,0.212,0.6,0.2,0,1,-3.0],[0.062,0.663,0.4,0.2,0,1,5.0],[0.46,0.69,0.45,0.2,0,1,0.0]],"fry":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"fwp":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"gandalf":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"gb":[[0.0,0.0,0.49,0.245,1,0,0.0],[0.0,0.255,0.49,0.246,1,0,0.0],[0.0,0.51,0.489,0.224,1,0,0.0],[0.0,0.746,0.49,0.255,1,0,0.0]],"gears":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"genie":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ggg":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"glasses":[[0.5,0.0,0.5,0.49,1,0,0.0],[0.5,0.51,0.5,0.49,1,0,0.0]],"gone":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"grave":[[0.147,0.239,0.2,0.23,1,1,4.0],[0.107,0.77,0.4,0.2,0,0,5.0],[0.519,0.552,0.4,0.2,0,0,20.0]],"gru":[[0.275,0.2,0.207,0.2,1,0,0.0],[0.78,0.2,0.205,0.2,1,0,0.0],[0.28,0.7,0.205,0.2,1,0,0.0],[0.78,0.7,0.205,0.2,1,0,0.0]],"grumpycat":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"hagrid":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"handshake":[[0.016,0.439,0.4,0.4,0,1,-45.0],[0.444,0.457,0.4,0.4,0,1,27.5],[0.15,0.1,0.5,0.2,0,1,0.0]],"happening":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"harold":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"headaches":[[0.5,0.64,0.5,0.08,1,0,0.0]],"hipster":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"home":[[0.002,0.002,1.0,0.1,1,0,0.0],[0.0,0.1,1.0,0.1,1,0,0.0],[0.0,0.2,1.0,0.1,1,0,0.0]],"icanhas":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"imsorry":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"inigo":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"interesting":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ive":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"iw":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"jd":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"jetpack":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"jim":[[0.029,0.051,0.61,0.22,1,1,1.0],[0.02,0.56,0.55,0.35,1,1,0.0]],"joker":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"jw":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"keanu":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"kermit":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"khaby-lame":[[0.02,0.02,0.45,0.47,1,0,0.0],[0.02,0.51,0.45,0.47,1,0,0.0]],"kk":[[0.0,0.0,1.0,0.15,0,1,0.0],[0.0,0.85,1.0,0.15,0,1,0.0]],"kombucha":[[0.0,0.0,0.5,0.3,1,0,0.0],[0.512,0.0,0.487,0.3,1,0,0.0]],"kramer":[[0.3,0.12,0.7,0.2,0,0,0.0],[0.0,0.8,0.6,0.2,0,0,0.0]],"leo":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"light":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"live":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ll":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"lrv":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"made":[[0.01,0.28,0.25,0.1,0,1,0.0],[0.74,0.28,0.25,0.1,0,1,0.0],[0.27,0.04,0.15,0.1,1,0,0.0],[0.525,0.03,0.15,0.1,1,0,0.0],[0.345,0.725,0.15,0.1,1,0,0.0]],"mb":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"michael-scott":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"midwit":[[0.02,0.46,0.283,0.1,1,0,0.0],[0.13,0.02,0.7,0.1,1,0,0.0],[0.687,0.386,0.283,0.1,1,0,0.0]],"millers":[[0.0,0.35,0.5,0.15,0,0,0.0],[0.5,0.35,0.5,0.15,0,0,0.0],[0.0,0.85,0.5,0.15,0,0,0.0],[0.5,0.85,0.5,0.15,0,0,0.0]],"mini-keanu":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"mmm":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"money":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"mordor":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"morpheus":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"mouth":[[0.0,0.15,0.4,0.2,0,0,0.0],[0.6,0.2,0.4,0.2,0,0,0.0],[0.1,0.6,0.4,0.2,0,0,0.0]],"mw":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"nails":[[0.039,0.297,0.35,0.1,0,1,42.0],[0.407,0.839,0.35,0.1,0,1,-20.0],[0.525,0.279,0.45,0.2,0,0,-10.0]],"nice":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"noah":[[0.79,0.3,0.2,0.1,0,0,0.0],[0.68,0.7,0.2,0.1,0,0,0.0],[0.06,0.68,0.2,0.1,0,0,0.0],[0.0,0.9,1.0,0.1,0,0,0.0]],"noidea":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ntot":[[0.061,0.119,0.21,0.15,1,0,12.0],[0.46,0.15,0.18,0.15,1,0,0.0],[0.7,0.135,0.25,0.15,1,1,0.0]],"oag":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"officespace":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"older":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"oprah":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"panik-kalm-panik":[[0.01,0.01,0.45,0.32,1,0,0.0],[0.01,0.35,0.45,0.32,1,0,0.0],[0.01,0.69,0.45,0.305,1,0,0.0]],"patrick":[[0.0,0.0,1.0,0.15,0,1,0.0],[0.0,0.85,1.0,0.15,0,1,0.0]],"perfection":[[0.0,0.0,0.5,0.333,1,1,0.0],[0.5,0.225,0.5,0.1,0,0,0.0],[0.0,0.333,0.5,0.333,1,1,0.0],[0.5,0.56,0.5,0.1,0,0,0.0],[0.0,0.666,0.5,0.333,1,1,0.0],[0.5,0.895,0.5,0.1,0,0,0.0]],"persian":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"philosoraptor":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"pigeon":[[0.15,0.0,0.35,0.2,0,0,0.0],[0.71,0.3,0.175,0.1,0,0,0.0],[0.0,0.8,1.0,0.2,0,0,0.0]],"pooh":[[0.5,0.0,0.5,0.5,1,0,0.0],[0.5,0.5,0.5,0.5,1,0,0.0]],"pool":[[0.33,0.4,0.4,0.15,0,0,0.0],[0.05,0.85,0.4,0.15,0,0,0.0],[0.6,0.65,0.4,0.15,0,0,0.0]],"prop3":[[0.155,0.34,0.64,0.31,0,0,-3.0]],"ptj":[[0.0,0.175,0.5,0.05,0,0,0.0],[0.5,0.175,0.5,0.05,0,0,0.0],[0.0,0.425,0.5,0.05,0,0,0.0],[0.5,0.425,0.5,0.05,0,0,0.0],[0.0,0.675,0.5,0.05,0,0,0.0],[0.5,0.675,0.5,0.05,0,0,0.0],[0.0,0.925,0.5,0.05,0,0,0.0],[0.5,0.925,0.5,0.05,0,0,0.0]],"puffin":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"red":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"regret":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"remembers":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"reveal":[[0.04,0.26,0.3,0.1,0,0,0.0],[0.0,0.36,1.0,0.15,0,1,0.0],[0.04,0.8,0.3,0.1,0,0,0.0],[0.0,0.9,1.0,0.1,0,1,0.0]],"right":[[0.09,0.01,0.25,0.1,0,1,0.0],[0.65,0.01,0.25,0.1,0,1,0.0],[0.0,0.399,0.499,0.1,0,0,0.0],[0.502,0.399,0.499,0.1,0,0,0.0],[0.502,0.9,0.499,0.1,0,0,0.0]],"rollsafe":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sad-biden":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sad-boehner":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sad-bush":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sad-clinton":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sad-obama":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sadfrog":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"saltbae":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"same":[[0.092,0.045,0.35,0.3,1,0,-12.0],[0.555,0.099,0.45,0.3,1,0,-12.0],[0.45,0.775,0.4,0.15,0,0,0.0]],"sarcasticbear":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"say":[[0.0,0.33,1.0,0.17,0,0,0.0],[0.0,0.85,1.0,0.15,0,0,0.0]],"sb":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"scc":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"seagull":[[0.0,0.24,0.25,0.1,0,0,0.0],[0.0,0.75,1.0,0.25,0,0,0.0]],"sf":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sk":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ski":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"slap":[[0.196,0.286,0.35,0.3,0,1,44.0],[0.5,0.7,0.35,0.3,0,1,0.0]],"snek":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"soa":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sohappy":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sohot":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"soup-nazi":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"sparta":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"spiderman":[[0.05,0.0,0.45,0.15,0,1,0.0],[0.5,0.85,0.45,0.15,0,1,0.0]],"spirit":[[0.1,0.28,0.35,0.16,0,0,0.0],[0.1,0.45,0.34,0.05,0,0,0.0],[0.1,0.51,0.34,0.08,0,0,0.0],[0.1,0.59,0.34,0.08,0,0,0.0],[0.1,0.67,0.34,0.08,0,0,0.0]],"spongebob":[[0.0,0.0,1.0,0.2,0,0,0.0],[0.0,0.8,1.0,0.2,0,0,0.0]],"ss":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"stew":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"stonks":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"stop":[[0.0,0.0,0.5,0.06,0,0,0.0],[0.5,0.0,0.5,0.075,0,0,0.0],[0.18,0.335,0.32,0.18,0,0,0.0],[0.5,0.335,0.5,0.07,0,0,0.0],[0.0,0.67,0.5,0.075,0,0,0.0],[0.5,0.67,0.5,0.075,0,0,0.0]],"stop-it":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"success":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"tenguy":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"toohigh":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"touch":[[0.0,0.3,1.0,0.2,0,0,0.0],[0.0,0.8,1.0,0.2,0,0,0.0]],"tried":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"trump":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"ugandanknuck":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"vince":[[0.0,0.0,0.495,0.315,1,0,0.0],[0.0,0.32,0.495,0.357,1,0,0.0],[0.0,0.68,0.495,0.32,1,0,0.0]],"wallet":[[0.0,0.17,0.5,0.08,0,0,0.0],[0.5,0.18,0.5,0.07,0,0,0.0],[0.0,0.4,0.5,0.1,0,0,0.0],[0.5,0.43,0.5,0.07,0,0,0.0],[0.0,0.65,0.5,0.1,0,0,0.0],[0.5,0.67,0.5,0.08,0,0,0.0],[0.0,0.92,0.5,0.08,0,0,0.0],[0.5,0.92,0.5,0.08,0,0,0.0]],"waygd":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"wddth":[[0.0,0.0,1.0,0.15,0,1,0.0],[0.1,0.85,0.8,0.15,0,0,0.0]],"whatyear":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"winter":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"wishes":[[0.0,0.48,0.45,0.15,1,0,0.0]],"wkh":[[0.1,0.3,0.3,0.1,0,0,0.0],[0.53,0.35,0.3,0.1,0,0,0.0],[0.0,0.875,1.0,0.125,0,0,0.0]],"woman-cat":[[0.0,0.0,0.5,0.22,1,0,0.0],[0.5,0.0,0.5,0.22,1,0,0.0]],"wonka":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"worst":[[0.0,0.4,1.0,0.1,0,0,0.0],[0.0,0.9,1.0,0.1,0,0,0.0]],"xy":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"yallgot":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"yodawg":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"yuno":[[0.0,0.0,1.0,0.2,0,1,0.0],[0.0,0.8,1.0,0.2,0,1,0.0]],"zero-wing":[[0.025,0.7,0.95,0.265,0,1,0.0]]};
+const TECH = [["Git","drake",["git commit -m 'fix'","git commit -m 'fix: handle null user at checkout (closes #482)'"]],["Git","gb",["git commit","git commit --amend","git rebase -i HEAD~7","git push --force"]],["Git","panik-kalm-panik",["Merge conflict in 14 files","Oh, it's just whitespace","The conflict is in package-lock.json"]],["Git","fine",["Detached HEAD state","this is fine"]],["Git","slap",["Me trying to finish my commit","CONFLICT (content): Merge conflict in app.js"]],["Git","xy",["Squash","all the commits"]],["Git","yodawg",["Yo dawg, I heard you like branches","so I branched your branch off a branch"]],["Git","cmm",["Force pushing to main is a valid workflow"]],["Git","spongebob",["Me: I don't need to pull, nobody else touched it","Me: i dOn'T nEeD tO pUlL, nObOdY eLsE tOuChEd iT"]],["Git","kermit",["Sees a teammate force push to main","but that's none of my business"]],["Git","regret",["git push --force","I immediately regret this decision"]],["Git","wddth",["When someone force pushes to main","We don't do that here."]],["Git","mmm",["Names the commit 'final'","Then 'final2', then 'final_FINAL_v3'"]],["Git","ch",["If you wanted to avoid merge conflicts","you should have pulled before you started"]],["Git","ds",["git rebase","git merge","Me, staring at 40 conflicts"]],["Git","pooh",["git commit -m 'update'","git commit -m 'refactor: extract payment service interface'"]],["Git","cheems",["it's a good time to resolve conflicts with 'accept theirs'","nothing will go wrong after this"]],["Git","noidea",["I have no idea","what git rebase just did"]],["Git","doge",["such branch, much conflict","wow, no backup"]],["Git","reveal",["Who deleted the main branch?","Let's see who you really are...","Me, with admin rights","I knew it!"]],["Coding","drake",["Writing clean, documented code","Copying it from Stack Overflow and praying"]],["Coding","db",["My stable, boring stack","Me","A new JavaScript framework"]],["Coding","woman-cat",["Frontend: The API is broken!","Backend: Works on my machine"]],["Coding","success",["Fixed the bug","Without breaking anything else"]],["Coding","fry",["Not sure if my code is clean","or I just can't read it anymore"]],["Coding","rollsafe",["Can't have bugs","if you never write tests"]],["Coding","stonks",["Adds a TODO: fix later","Technical debt: stonks"]],["Coding","mordor",["One does not simply","center a div"]],["Coding","grumpycat",["Tabs or spaces?","Both. In the same file."]],["Coding","interesting",["I don't always test my code","But when I do, I do it in production"]],["Coding","buzz",["Bugs","Bugs everywhere"]],["Coding","yuno",["Y U NO","work on my machine?"]],["Coding","sb",["Remembers every API endpoint name","Forgets the closing bracket"]],["Coding","ss",["Writes code with zero comments","Blames the next developer"]],["Coding","ggg",["Writes documentation","Actually keeps it updated"]],["Coding","firsttry",["Writes 500 lines of code","compiles on the first try!"]],["Coding","wonka",["Oh, you use Vim?","Tell me more about how you can't exit it"]],["Coding","philosoraptor",["If 'null' means nothing","why does it crash my whole app?"]],["Coding","older",["It's a COBOL system, sir","but it checks out"]],["Coding","pooh",["Writing a function","Writing an abstract factory builder strategy singleton"]],["Coding","midwit",["Just use SQLite","We need Kubernetes, Kafka and 40 microservices!","Just use SQLite"]],["Coding","headaches",["A bug that vanishes the moment you add logging"]],["Coding","gb",["Writing code","Writing tests","Writing documentation","Deleting the feature"]],["Coding","pigeon",["Me, a developer","A missing semicolon","Is this a syntax error?"]],["Coding","exit",["Write clean, maintainable code","Ship it now, fix it later","Me, at 4:59 PM"]],["Coding","handshake",["Frontend developers","Backend developers","Hating Internet Explorer"]],["Coding","country",["'10' + 1 = '101' but '10' - 1 = 9","What a language!"]],["Coding","same",["Java","JavaScript","They're the same picture"]],["Coding","bender",["I'm going to build my own framework","with blackjack and hooks"]],["Debugging","facepalm",["Spent 6 hours debugging","Forgot to save the file"]],["Debugging","crazypills",["Everyone says the code is fine","I feel like I'm taking crazy pills"]],["Debugging","gb",["Googling the error","Reading Stack Overflow","Asking a colleague","Explaining it to a rubber duck and solving it"]],["Debugging","scc",["Oh my god","the bug was in the test, not the code"]],["Debugging","whatyear",["Finds the perfect answer on Stack Overflow","What year is it? (2011)"]],["Debugging","dbg",["Expected: a quick fix","Reality: a 3-week refactor"]],["Debugging","away",["Bug...","finds a way"]],["Debugging","afraid",["I don't know what this regex does","and at this point I'm too afraid to ask"]],["Debugging","gandalf",["Opens code written last year","I have no memory of this place"]],["Debugging","tried",["At least","it compiled"]],["Debugging","boat",["Fixes one CSS bug, breaks three","I should become a farmer"]],["Debugging","blb",["Writes a one-line fix","Breaks 12 tests"]],["Debugging","cb",["I copied the code from Stack Overflow","I don't understand it either"]],["Debugging","panik-kalm-panik",["The build failed","It's just a typo","The typo is in a 3-year-old config"]],["Debugging","spiderman",["Frontend: It's a backend bug","Backend: It's a frontend bug"]],["Debugging","fry",["Not sure if it's a feature","or a bug nobody reported"]],["Debugging","slap",["Me, finally fixing the bug","The bug, moving to a different file"]],["Managers","officespace",["Yeah, if you could ship it by Friday","that'd be great"]],["Managers","officespace",["Yeah, I'm gonna need you to come in on Saturday","that would be great"]],["Managers","cake",["Hired to write code","I was told there would be fewer meetings"]],["Managers","mouth",["Sales team promising the feature in a slide deck","Excited customer","Engineering team knowing it's impossible"]],["Managers","harold",["When the manager says 'quick call?'","at 5:55 PM on a Friday"]],["Managers","michael-scott",["Manager: We're rewriting everything in a new language","NOOOOOOOOO"]],["Managers","fry",["Not sure if the manager wants an update","or just wants to hear 'it's done'"]],["Managers","elf",["Manager: It's just a small change","You sit on a throne of lies"]],["Managers","wonka",["Oh, you want it fast, cheap and good?","Tell me more about picking two"]],["Managers","db",["Technical debt","Product manager","New feature requests"]],["Managers","drake",["Prioritizing bug fixes","Adding the feature the CEO saw on LinkedIn"]],["Managers","gru",["Add more people to a late project","The project gets done faster","The project gets later","The project gets later"]],["Managers","gb",["Set a deadline","Set a tighter deadline","Skip the planning","Ask the developers why it isn't done"]],["Managers","panik-kalm-panik",["Manager: Quick question","It's just a message","Manager: Can you hop on a call?"]],["Managers","ds",["Refactor the codebase","Ship the new feature","Me, deciding"]],["Managers","exit",["Prioritize quality","Add three more features this sprint","The team"]],["Managers","slap",["Developer: Good estimates take time","Manager: Can we have it by tomorrow?"]],["Managers","handshake",["Managers","Developers","Wanting fewer meetings"]],["Managers","cmm",["'Quick call' is never quick"]],["Managers","disastergirl",["Promises the client a demo by Monday","just as I planned..."]],["Meetings & Agile","drake",["Sending an email","Scheduling a 1-hour meeting to discuss sending an email"]],["Meetings & Agile","spongebob",["Manager: We're a family here","mAnAgEr: wE'rE a fAmIlY hErE"]],["Meetings & Agile","pigeon",["Me","A 45-minute standup","Is this a meeting that could've been an email?"]],["Meetings & Agile","panik-kalm-panik",["Calendar invite: 'Quick sync'","It's only 15 minutes","Calendar invite: 'Weekly retro, 2 hours'"]],["Meetings & Agile","rollsafe",["Can't miss the deadline","if you never set one"]],["Meetings & Agile","rollsafe",["Can't have scope creep","if you never write the requirements"]],["Meetings & Agile","cmm",["The daily standup should just be a text message"]],["Meetings & Agile","fry",["Not sure if this is a sprint","or a very long marathon"]],["Meetings & Agile","philosoraptor",["If a meeting could have been an email","why am I in a meeting about it?"]],["Meetings & Agile","wonka",["Oh, we're 'agile' now?","Tell me more about your 6-month roadmap"]],["Meetings & Agile","stonks",["Estimating a 2-week task","Delivering in 2 months: not stonks"]],["Meetings & Agile","fine",["Backlog: 1,247 tickets","this is fine"]],["Meetings & Agile","slap",["Me, finishing the sprint","Reprioritization at 4 PM on Friday"]],["Meetings & Agile","success",["Sprint demo goes without a single bug","Because it was a recorded video"]],["Meetings & Agile","mmm",["Says 'let's take this offline'","Never mentions it again"]],["Meetings & Agile","ggg",["Cancels the meeting","Gives everyone their time back"]],["Meetings & Agile","ss",["Schedules a meeting for 5:30 PM","Invites the whole company"]],["Meetings & Agile","interesting",["I don't always hold a retrospective","But when I do, nothing changes"]],["Meetings & Agile","regret",["Says 'sure, I can take that on'","I immediately regret this decision"]],["Meetings & Agile","same",["Agile","Waterfall with daily standups","They're the same picture"]],["Dev life","drake",["Sleeping 8 hours","Debugging at 2 AM"]],["Dev life","db",["Documentation","Developer","Writing more code"]],["Dev life","woman-cat",["Dev: Who touched my code?!","Git blame: You did, six months ago"]],["Dev life","doge",["much bug","wow, no tests"]],["Dev life","stonks",["Coffee intake","Productivity: stonks"]],["Dev life","ds",["Fix the old bugs","Build the shiny new feature","Me, with a coffee"]],["Dev life","same",["Tabs","Spaces","They're the same picture"]],["Dev life","spongebob",["Boss: It's just a quick fix","bOsS: iT's JuSt A qUiCk FiX"]],["Dev life","cheems",["it's a good time to update every dependency","nothing will go wrong after this"]],["Dev life","noidea",["I have no idea","what this legacy function does"]],["Dev life","philosoraptor",["If I name the variable 'temp'","will it ever be temporary?"]],["Dev life","sarcasticbear",["Oh, you wrote clean code?","I'm sure nobody will touch it in a year"]],["Dev life","facepalm",["Rewrote the whole module to save three lines","I can't even"]],["Dev life","yuno",["Y U NO","document your own code?"]],["Dev life","gears",["You know what really grinds my gears?","Variables named 'data2_final_new'"]],["Dev life","joker",["It's simple","just rewrite it in Rust"]],["Dev life","mordor",["One does not simply","estimate software accurately"]],["Dev life","ive",["We redesigned the settings page","You'll love it (we moved everything)"]],["Dev life","xy",["Automate","all the things"]],["Dev life","mw",["You're going to love how your code looks","I guarantee it (Prettier)"]],["Dev life","jw",["You added another npm dependency?","Probably not a good idea"]],["Dev life","sohot",["Microservices are","so hot right now"]],["DevOps & Prod","fine",["Production is down","this is fine"]],["DevOps & Prod","slap",["Me, closing my laptop at 5 PM","The pager"]],["DevOps & Prod","panik-kalm-panik",["Pager goes off at 3 AM","It's just a false alarm","It's production"]],["DevOps & Prod","gb",["Restart the app","Restart the server","Restart the whole cluster","Restart your career"]],["DevOps & Prod","gru",["Deploy on a Friday afternoon","Go home early","The phone rings","The phone rings"]],["DevOps & Prod","drake",["Rolling back the release","Hotfixing live in production"]],["DevOps & Prod","cmm",["Friday deployments are fine"]],["DevOps & Prod","regret",["rm -rf in the wrong directory","I immediately regret this decision"]],["DevOps & Prod","woman-cat",["Ops: Why is the server down?!","Dev: It works in staging"]],["DevOps & Prod","spiderman",["Dev: It's an infrastructure problem","Ops: It's a code problem"]],["DevOps & Prod","buzz",["Containers","Containers everywhere"]],["DevOps & Prod","stonks",["Cloud bill: $0 to $40,000","Not stonks"]],["DevOps & Prod","mmm",["Runs the script on production","Instead of staging"]],["DevOps & Prod","ch",["If you wanted a reliable backup","you should have tested the restore"]],["DevOps & Prod","disastergirl",["Makes a 'small' config change in production","just as I planned..."]],["DevOps & Prod","kermit",["Sees production running on a laptop under a desk","but that's none of my business"]],["DevOps & Prod","interesting",["I don't always test in production","But when I do, it's on a Friday"]],["DevOps & Prod","vince",["Fixing it in dev","Fixing it in staging","Fixing it in production"]],["DevOps & Prod","yodawg",["Yo dawg, I heard you like containers","so I put a container in your container"]],["DevOps & Prod","philosoraptor",["If the server is running","should I go catch it?"]],["DevOps & Prod","scc",["Oh my god","staging points at the production database"]],["DevOps & Prod","badchoice",["Friday 5 PM deploy","was a bad choice"]],["Careers","drake",["Reversing a linked list on a whiteboard","Actually building the product on the job"]],["Careers","pigeon",["Recruiter","A junior role requiring 5 years of experience","Is this entry-level?"]],["Careers","wonka",["Oh, you finished a 3-month bootcamp?","Tell me more about your system design skills"]],["Careers","success",["Passed the technical interview","Forgot how to use git on day one"]],["Careers","stonks",["Learning a brand-new framework","Job posting: 10 years of experience in it"]],["Careers","fry",["Not sure if this job posting is for a junior","or an entire engineering team"]],["Careers","philosoraptor",["If the job says 'fast-paced environment'","does that mean no breaks?"]],["Careers","slap",["Me, asking for a raise","Manager: We're like a family"]],["Careers","rollsafe",["Can't be laid off","if you're the only one who understands the legacy code"]],["Careers","gru",["Apply to 100 jobs","Get an interview","They ask you to reverse a binary tree","They ask you to reverse a binary tree"]],["Careers","gb",["Junior developer","Mid-level developer","Senior developer","Farmer"]],["Careers","db",["My current job","Me","A recruiter message on LinkedIn"]],["Careers","harold",["Interviewer: Where do you see yourself in 5 years?","Me: Not answering this question"]],["Careers","facepalm",["Job post: 'Junior developer, 7 years of experience'","I can't even"]],["Careers","sarcasticbear",["Oh, unlimited vacation days?","I'm sure someone has actually used them"]],["Careers","sohappy",["If I could just get one remote job offer","I would be so happy"]],["Careers","handshake",["Recruiters","Developers","Hating whiteboard interviews"]],["Careers","cmm",["Leetcode doesn't measure how good you are at your job"]],["Careers","blb",["Gets a job offer","The company freezes hiring the next day"]]];
+
+const TPL_API = "https://api.memegen.link/templates/", FLIP_API = "https://api.imgflip.com/get_memes";
+const mgThumb = (id, w) => `https://api.memegen.link/images/${id}.jpg?width=${w}`, mgFull = id => `https://api.memegen.link/images/${id}.jpg`;
+const POPULAR = ["drake", "db", "woman-cat", "success", "fry", "doge", "spongebob", "gb", "cmm", "pigeon", "rollsafe", "fine", "stonks", "astronaut",
+  "panik-kalm-panik", "disastergirl", "mordor", "grumpycat", "kermit", "slap", "blb", "joker", "gru", "interesting", "buzz", "fwp", "aag", "yuno", "sb"];
+const SPECIAL = {"drake": {layout:"panelR"}};          // blank image has no text panel of its own: use "Picture + text"
+const TECH_CATS = ["All", ...new Set(TECH.map(x => x[0]))];
+let tplList = null, activeKey = null, tplTab = "tech", techCat = "All";
+const tplById = new Map();
+
+async function cachedJSON(key, url){
+  try { const c = JSON.parse(sessionStorage.getItem(key) || "null"); if (c) return c; } catch {}
+  const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json(); try { sessionStorage.setItem(key, JSON.stringify(j)); } catch {}
+  return j;
+}
+async function loadTemplateList(){
+  if (tplList) return tplList;
+  const [mg, fl] = await Promise.allSettled([cachedJSON("memegen.templates", TPL_API), cachedJSON("imgflip.templates", FLIP_API)]);
+  if (mg.status !== "fulfilled") throw mg.reason;
+  const byId = new Map();
+  for (const t of mg.value) if (!byId.has(t.id)) byId.set(t.id, {id:t.id, name:t.name, lines:t.lines, keywords:t.keywords || [], example:t.example, source:"memegen", thumb:mgThumb(t.id, 240), full:mgFull(t.id)});
+  const norm = x => x.toLowerCase().replace(/[^a-z0-9]/g, ""), seen = new Set([...byId.values()].map(t => norm(t.name))), extra = [];
+  if (fl.status === "fulfilled" && fl.value.data) for (const m of fl.value.data.memes){
+    if (seen.has(norm(m.name))) continue; seen.add(norm(m.name));
+    extra.push({id:"if" + m.id, name:m.name, lines:m.box_count, keywords:[], source:"imgflip", thumb:m.url, full:m.url});
+  }
+  const pop = POPULAR.filter(id => byId.has(id)).map(id => byId.get(id));
+  const rest = [...[...byId.values()].filter(t => !POPULAR.includes(t.id)), ...extra].sort((a, b) => a.name.localeCompare(b.name));
+  tplList = [...pop, ...rest]; tplList.forEach(t => tplById.set(t.id, t));
+  return tplList;
+}
+
+const fullCache = new Map(), fullReady = new Map();
+function loadRemote(url){
+  return new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous";
+    i.onload = () => res({bmp:i, w:i.naturalWidth, h:i.naturalHeight}); i.onerror = () => rej(new Error("image failed")); i.src = url; });
+}
+function fetchFull(t){                                   // one shared download per image, remembered for repeat picks
+  if (!fullCache.has(t.full)){
+    const pr = loadRemote(t.full).then(im => (fullReady.set(t.full, im), im));
+    pr.catch(() => fullCache.delete(t.full)); fullCache.set(t.full, pr);
+  }
+  return fullCache.get(t.full);
+}
+
+/* --- turning a template (plus optional captions) into canvas content --- */
+function itemFromBox(box, text, H){
+  const [ax, ay, sx, sy, black, upper, ang] = box, st = black ? STYLES["Black text"] : STYLES.Classic;
+  return {id:++seq, text, x:ax + sx/2, y:ay + sy/2, size:clamp(sy*H*.5, 26, 100), w:Math.min(1, sx), rot:-ang, align:"center",
+    font:"impact", color:st.color, stroke:st.stroke, sw:black ? 0 : 8, caps:!!upper, fit:true, bh:sy};
+}
+function applyTemplateImage(t, im, captions){
+  const ex = captions || (t.example && t.example.text) || [], sp = SPECIAL[t.id];
+  if (sp && sp.layout){
+    state.slots = [{img:im, zoom:1, ox:0, oy:0}];
+    applyLayout(LAYOUTS.find(l => l.id === sp.layout), false);
+    state.slots[0] = {img:im, zoom:1, ox:0, oy:0};
+    state.items.forEach((it, k) => { if (ex[k] !== undefined) it.text = ex[k]; });
+    syncTexts(); draw(); return;
+  }
+  applyLayout(LAYOUTS[0], false);
+  state.slots[0] = {img:im, zoom:1, ox:0, oy:0};
+  const H = Math.round(1000*im.h/im.w), boxes = t.source === "memegen" ? TPL_BOXES[t.id] : null, n = boxes ? boxes.length : t.lines;
+  state.items = Array.from({length:n}, (_, k) => {
+    const text = ex[k] ?? (captions || t.source === "memegen" ? "" : `Text ${k + 1}`);
+    if (boxes) return itemFromBox(boxes[k], text, H);
+    const st = STYLES.Classic, y = n === 1 ? .12 : n === 2 ? (k ? .88 : .12) : .1 + k*(.8/(n - 1));
+    return {id:++seq, text, x:.5, y, size:n > 2 ? Math.max(40, 84 - n*8) : 88, w:.94, rot:0, align:"center", font:st.font, color:st.color, stroke:st.stroke, sw:st.sw, caps:st.caps, fit:true};
+  });
+  state.sel = state.items[0] ? state.items[0].id : null;
+  syncLayouts(); syncTexts(); draw();
+}
+async function useTemplate(t, thumb, captions, key){
+  activeKey = key; markActive();
+  let im = fullReady.get(t.full), placeholder = null;
+  if (!im && thumb && thumb.complete && thumb.naturalWidth){   // instant low-res preview while the sharp image downloads
+    im = placeholder = {bmp:thumb, w:thumb.naturalWidth, h:thumb.naturalHeight, placeholder:true};
+    note(`Loading “${t.name}” in full quality…`);
+  } else if (!im) note(`Loading “${t.name}”…`);
+  if (im) applyTemplateImage(t, im, captions);
+  try {
+    const full = await fetchFull(t);
+    if (activeKey !== key) return;                              // user already picked something else
+    if (placeholder){ const s0 = state.slots[0]; if (s0 && s0.img === placeholder) s0.img = full; draw(); }
+    else if (!im) applyTemplateImage(t, full, captions);
+    note(`${captions ? "Loaded" : "Template:"} ${t.name} (${t.source === "imgflip" ? "via imgflip.com" : "via memegen.link"}). Edit the captions in the Text panel.`);
+  } catch { if (activeKey === key) note("Couldn't load that image. Check your connection and try again.", true); }
+}
+
+/* --- the left panel --- */
+function markActive(){ $("tplGrid").querySelectorAll(".tcard").forEach(c => c.setAttribute("aria-pressed", c._key === activeKey)); }
+function makeTile(key, thumbUrl, label, title, pickFn, prefetchT){
+  const b = document.createElement("button"); b.className = "tcard"; b.title = title; b._key = key; b.setAttribute("aria-pressed", key === activeKey);
+  const im = document.createElement("div"), img = document.createElement("img"); im.className = "im";
+  img.crossOrigin = "anonymous"; img.loading = "lazy"; img.decoding = "async"; img.alt = ""; img.src = thumbUrl; im.append(img);
+  const sp = document.createElement("span"); sp.textContent = label; b.append(im, sp);
+  let hov = 0;
+  b.onpointerenter = () => { hov = setTimeout(() => fetchFull(prefetchT).catch(() => {}), 120); };
+  b.onpointerleave = () => clearTimeout(hov);
+  b.onfocus = () => fetchFull(prefetchT).catch(() => {});
+  b.onclick = () => pickFn(img);
+  return b;
+}
+function message(text, retry){
+  const grid = $("tplGrid"); grid.replaceChildren();
+  const m = document.createElement("div"); m.className = "tplmsg"; m.style.gridColumn = "1/-1"; m.textContent = text;
+  if (retry){ const r = document.createElement("button"); r.textContent = "Try again"; r.style.marginTop = "12px"; r.onclick = retry; m.append(document.createElement("br"), r); }
+  grid.append(m);
+}
+function renderTemplateGrid(){
+  const q = $("tplQ").value.trim().toLowerCase(), grid = $("tplGrid");
+  $("tplTitle").textContent = tplTab === "tech" ? "Dev & tech humour" : "All templates";
+  $("tabTech").setAttribute("aria-pressed", tplTab === "tech"); $("tabAll").setAttribute("aria-pressed", tplTab === "all");
+  const chips = $("techCats"); chips.hidden = tplTab !== "tech";
+  if (tplTab === "tech"){
+    chips.replaceChildren(...TECH_CATS.map(c => { const b = document.createElement("button"); b.textContent = c; b.setAttribute("aria-pressed", c === techCat);
+      b.onclick = () => { techCat = c; renderTemplateGrid(); }; return b; }));
+    const rows = TECH.map((x, i) => ({cat:x[0], id:x[1], texts:x[2], i})).filter(r =>
+      (techCat === "All" || r.cat === techCat) && (!q || (r.texts.join(" ") + " " + r.cat).toLowerCase().includes(q)));
+    $("tplCount").textContent = `${rows.length} meme${rows.length === 1 ? "" : "s"}`; grid.replaceChildren();
+    if (!rows.length){ message("No memes match your search."); return; }
+    for (const r of rows){
+      const known = tplById.get(r.id), t = known || {id:r.id, name:r.id, source:"memegen", full:mgFull(r.id)};
+      const key = "tech" + r.i, label = r.texts.filter(Boolean).join(" · ");
+      grid.append(makeTile(key, mgThumb(r.id, 240), label, `${r.cat}: ${label}`, img => useTemplate(tplById.get(r.id) || t, img, r.texts, key), t));
+    }
+    return;
+  }
+  if (!tplList){ message("Loading templates…"); return; }
+  const list = tplList.filter(t => !q || (t.name + " " + t.id + " " + t.keywords.join(" ")).toLowerCase().includes(q));
+  $("tplCount").textContent = `${list.length} of ${tplList.length}`; grid.replaceChildren();
+  if (!list.length){ message("No templates match your search."); return; }
+  for (const t of list){ const key = "t:" + t.id; grid.append(makeTile(key, t.thumb, t.name, t.name, img => useTemplate(t, img, null, key), t)); }
+}
+async function initTemplates(){
+  try {
+    for (let attempt = 0; ; attempt++){                  // retry quietly before giving up
+      try { await loadTemplateList(); break; } catch (e) { if (attempt >= 2) throw e; await new Promise(r => setTimeout(r, 1200)); }
+    }
+    if (tplTab === "all") renderTemplateGrid();
+  } catch { if (tplTab === "all") message("Couldn't reach the template services. Check your connection, or use your own picture with “Add images”.", () => { message("Loading templates…"); initTemplates(); }); }
+}
+$("tabTech").onclick = () => { tplTab = "tech"; renderTemplateGrid(); };
+$("tabAll").onclick = () => { tplTab = "all"; renderTemplateGrid(); if (!tplList) initTemplates(); };
+$("tplQ").oninput = renderTemplateGrid;
+$("tplQ").placeholder = "Search: git, deploy, manager…";
+renderTemplateGrid(); initTemplates();
+
+applyLayout(LAYOUTS[0], false);
+window.addEventListener("resize", draw);
+</script>
+</body>
+</html>

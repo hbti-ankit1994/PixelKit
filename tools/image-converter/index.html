@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en" data-tool="image-converter">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Converter</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:rgba(255,255,255,.78);--fg:#0f172a;--muted:#64748b;--border:rgba(15,23,42,.09);
+  --accent:#6366f1;--accent2:#8b5cf6;--accent-soft:rgba(99,102,241,.1);--field:#fff;
+  --ok:#059669;--err:#dc2626;--shadow:0 1px 2px rgba(15,23,42,.04),0 12px 32px -12px rgba(15,23,42,.14);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b0d14;--card:rgba(24,27,38,.72);--fg:#e8eaf2;--muted:#8a93a8;--border:rgba(255,255,255,.08);
+  --accent:#818cf8;--accent2:#a78bfa;--accent-soft:rgba(129,140,248,.14);--field:rgba(255,255,255,.04);
+  --ok:#34d399;--err:#f87171;--shadow:0 12px 32px -12px rgba(0,0,0,.6);
+}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);
+  font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(60rem 30rem at 10% -10%,rgba(99,102,241,.18),transparent 60%),
+                   radial-gradient(50rem 28rem at 100% 0%,rgba(236,72,153,.13),transparent 60%);
+  background-repeat:no-repeat}
+main{max-width:880px;margin:0 auto;padding:40px 16px 64px}
+.back{display:inline-flex;align-items:center;gap:6px;margin-bottom:14px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:600}
+.back:hover{color:var(--accent)}
+header{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -6px var(--accent)}
+.logo svg{width:26px;height:26px}
+h1{margin:0;font-size:1.75rem;letter-spacing:-.02em;line-height:1.2}
+p.sub{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px}
+.badges span{font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:3px 10px;border-radius:99px;
+  background:var(--accent-soft);color:var(--accent)}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:var(--shadow)}
+#drop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:44px 16px;cursor:pointer;
+  border:2px dashed color-mix(in srgb,var(--accent) 35%,transparent);transition:transform .2s,background .2s,border-color .2s}
+#drop:hover,#drop.over{border-color:var(--accent);background:var(--accent-soft)}
+#drop.over{transform:scale(1.01)}
+#drop .ico{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;margin-bottom:6px;
+  background:var(--accent-soft);color:var(--accent)}
+#drop .ico svg{width:28px;height:28px}
+#drop .t{font-size:1.05rem;font-weight:600}
+#drop b{color:var(--accent)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+label{display:block;font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+label span{color:var(--fg);text-transform:none;letter-spacing:0}
+select,input[type=number]{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);
+  color:var(--fg);font:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+select:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=color]{width:100%;height:42px;border:1px solid var(--border);border-radius:12px;background:var(--field);padding:4px;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;margin:14px 0;
+  background:color-mix(in srgb,var(--accent) 25%,var(--border));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;
+  border:4px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#fff;border:4px solid var(--accent);cursor:pointer}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:600;padding:10px 18px;border-radius:12px;border:1px solid var(--border);
+  background:var(--field);color:var(--fg);cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(15,23,42,.3)}
+button.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 8px 20px -8px var(--accent)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.hint{font-size:.8rem;color:var(--muted);margin-top:12px;min-height:1em}
+.progress{margin-top:18px}
+.ptop{display:flex;justify-content:space-between;gap:12px;font-size:.85rem;margin-bottom:8px;color:var(--muted)}
+.ptop span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptop b{color:var(--accent);font-variant-numeric:tabular-nums}
+.track{height:12px;border-radius:99px;overflow:hidden;background:var(--accent-soft);
+  box-shadow:inset 0 1px 2px rgba(15,23,42,.12)}
+.fill{height:100%;width:0;border-radius:99px;position:relative;overflow:hidden;
+  background:linear-gradient(90deg,#7c3aed,var(--accent2),var(--accent));
+  box-shadow:0 0 14px -2px var(--accent2);transition:width .35s cubic-bezier(.3,.7,.2,1)}
+.fill::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
+  background-size:200% 100%;animation:shine 1.3s linear infinite}
+.progress.done .fill::after{animation:none;opacity:0}
+.progress.done .ptop b{color:var(--ok)}
+@keyframes shine{from{background-position:200% 0}to{background-position:-200% 0}}
+.lhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.clearTop{margin-left:auto;padding:8px 16px;font-size:.88rem;white-space:nowrap}
+.item img.zoom{cursor:zoom-in}
+dialog{border:0;padding:0;border-radius:20px;width:min(960px,94vw);max-width:none;background:var(--bg);color:var(--fg);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.55)}
+dialog::backdrop{background:rgba(10,12,24,.6);backdrop-filter:blur(4px)}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px}
+.dhead b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dhead button{padding:6px 10px}
+.cmpbody{padding:0 18px 18px}
+.cmp{position:relative;margin:0 auto;border-radius:14px;overflow:hidden;user-select:none;
+  background:repeating-conic-gradient(#9993 0 25%,#0000 0 50%) 0 0/16px 16px;border:1px solid var(--border)}
+.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
+#cmpB{clip-path:inset(0 0 0 50%)}
+.divider{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
+.divider i{position:absolute;top:50%;left:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 14px rgba(0,0,0,.35);
+  display:grid;place-items:center;color:#fff;font-style:normal;font-size:16px}
+.divider i::after{content:"\2194"}
+.cmp input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.tag{position:absolute;top:10px;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:600;color:#fff;
+  background:rgba(15,23,42,.65);pointer-events:none}
+.tag.l{left:10px}.tag.r{right:10px}
+.cmpstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.cmpstats div{padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid var(--border);font-size:.85rem}
+.cmpstats div{position:relative;transition:border-color .2s,background .2s,box-shadow .2s;opacity:.6}
+.cmpstats div.on{opacity:1;border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px var(--accent-soft)}
+.cmpstats b{display:block;color:var(--accent)}
+.cmpstats em{font-style:normal}
+.cmpstats .live{position:absolute;top:10px;right:12px;font-size:.72rem;font-weight:600;color:var(--accent)}
+.cmperr{padding:28px 16px;text-align:center;color:var(--muted)}
+@media (max-width:520px){.cmpstats{grid-template-columns:1fr}}
+.notice{margin:-6px 0 18px;padding:12px 16px;border-radius:14px;font-size:.88rem;
+  color:var(--err);background:color-mix(in srgb,var(--err) 10%,transparent);border:1px solid color-mix(in srgb,var(--err) 30%,transparent)}
+.notice div+div{margin-top:2px}
+.item{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--border)}
+.item:first-child{border-top:0;padding-top:0}.item:last-child{padding-bottom:0}
+.item img{width:56px;height:56px;object-fit:cover;border-radius:12px;border:1px solid var(--border);
+  background:repeating-conic-gradient(#9993 0 25%,#0000 0 50%) 0 0/12px 12px}
+.meta{flex:1;min-width:0}
+.name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.info{font-size:.8rem;color:var(--muted)}
+.info.ok{color:var(--ok);font-weight:500}.info.err{color:var(--err)}
+a.dl{color:#fff;text-decoration:none;white-space:nowrap;font-weight:600;font-size:.85rem;padding:8px 14px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.item button{padding:6px 10px;border-radius:10px;color:var(--muted)}
+@media (max-width:520px){main{padding-top:24px}.card{padding:16px;border-radius:16px}h1{font-size:1.4rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="../../assets/theme.css">
+</head>
+<body>
+<main>
+  <nav class="topbar">
+    <a class="brand" href="../../index.html"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <a class="back" href="../../index.html">← All tools</a>
+  </nav>
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>
+    <div><h1>Image Converter</h1><p class="sub">Fast, private, in-browser conversion. Nothing is uploaded.</p></div>
+    <button id="clear" class="clearTop" disabled>Clear all</button>
+  </header>
+  <div class="badges"><span>PNG</span><span>JPEG</span><span>WEBP</span><span>AVIF</span><span>GIF</span><span>BMP</span><span>ICO</span><span>TIFF</span></div>
+
+  <div class="card" id="drop">
+    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></div>
+    <div class="t">Drop images here or <b>browse</b></div>
+    <div class="info">You can also paste from the clipboard · PNG, JPG, WebP, AVIF, GIF, BMP, ICO, SVG</div>
+    <div class="info" id="limits"></div>
+    <input id="file" type="file" accept="image/*" multiple hidden>
+  </div>
+  <div class="notice" id="notice" hidden></div>
+
+  
+  <div class="card">
+    <div class="opts">
+      <div><label for="fmt">Convert to</label><select id="fmt"></select></div>
+      <div id="modeWrap"><label for="mode">Compression</label><select id="mode"><option value="quality">Set quality</option><option value="target">Target file size</option></select></div>
+      <div id="qWrap"><label for="q">Quality: <span id="qv">90</span></label><input id="q" type="range" min="1" max="100" value="90"></div>
+      <div id="tWrap" hidden><label for="target">Keep under (KB)</label><input id="target" type="number" min="10" step="10" value="500"></div>
+      <div><label for="scale">Scale: <span id="sv">100</span>%</label><input id="scale" type="range" min="5" max="200" value="100"></div>
+      <div id="bgWrap"><label for="bg">Background (for formats without transparency)</label><input id="bg" type="color" value="#ffffff"></div>
+      <div id="icoWrap" hidden><label for="ico">ICO size (px)</label>
+        <select id="ico"><option>16</option><option>32</option><option>48</option><option>64</option><option>128</option><option selected>256</option></select></div>
+      <div id="pngWrap" hidden><label for="pngmode">PNG colours</label><select id="pngmode"><option value="full">Full colour (lossless)</option><option value="pal">256 colours (much smaller)</option></select></div>
+      <div id="ditherWrap" hidden><label for="dither">GIF dithering</label><select id="dither"><option value="1">On</option><option value="0">Off</option></select></div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button class="primary" id="go" disabled>Convert all</button>
+      <button id="zip" disabled>Download all (.zip)</button>
+    </div>
+    <div class="progress" id="progress" hidden>
+      <div class="ptop"><span id="ptext">Converting…</span><b id="ppct">0%</b></div>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="pbar"></div></div>
+    </div>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <div class="card" id="list" hidden>
+    <div class="lhead"><b id="count"></b></div>
+    <div id="items"></div>
+  </div>
+
+  <dialog id="cmpDlg">
+    <div class="dhead"><b id="cmpTitle"></b><button id="cmpClose" aria-label="Close">✕</button></div>
+    <div class="cmpbody">
+      <div class="cmp" id="cmp">
+        <img id="cmpA" alt="Original"><img id="cmpB" alt="Converted">
+        <span class="tag l">Original</span><span class="tag r">Converted</span>
+        <div class="divider" id="cmpDiv"><i></i></div>
+        <input type="range" id="cmpRange" min="0" max="100" value="50" aria-label="Drag to compare original and converted">
+      </div>
+      <div class="cmperr" id="cmpErr" hidden></div>
+      <div class="cmpstats">
+        <div id="statA"><span class="live"></span><b></b><em></em></div>
+        <div id="statB"><span class="live"></span><b></b><em></em></div>
+      </div>
+    </div>
+  </dialog>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---------- format table ---------- */
+const FORMATS = {
+  png:  {label:"PNG",  ext:"png",  mime:"image/png",  alpha:true},
+  jpeg: {label:"JPEG", ext:"jpg",  mime:"image/jpeg", alpha:false, quality:true},
+  webp: {label:"WebP", ext:"webp", mime:"image/webp", alpha:true,  quality:true, probe:true},
+  avif: {label:"AVIF", ext:"avif", mime:"image/avif", alpha:true,  quality:true, probe:true},
+  gif:  {label:"GIF",  ext:"gif",  mime:"image/gif",  alpha:true,  custom:true},
+  bmp:  {label:"BMP",  ext:"bmp",  mime:"image/bmp",  alpha:true,  custom:true},
+  ico:  {label:"ICO",  ext:"ico",  mime:"image/x-icon", alpha:true, custom:true},
+  tiff: {label:"TIFF", ext:"tif",  mime:"image/tiff", alpha:true,  custom:true},
+};
+
+/* ---------- helpers ---------- */
+const toBlob = (c, mime, q) => new Promise(r => c.toBlob(r, mime, q));
+const u32 = (dv, o, v) => dv.setUint32(o, v, true);
+function hexToRgb(h){ const n = parseInt(h.slice(1),16); return [n>>16&255, n>>8&255, n&255]; }
+function fmtSize(n){ return n<1024 ? n+" B" : n<1048576 ? (n/1024).toFixed(1)+" KB" : (n/1048576).toFixed(2)+" MB"; }
+
+function makeCanvas(img, scale, w, h){
+  const c = document.createElement("canvas");
+  c.width = w ?? Math.max(1, Math.round(img.naturalWidth * scale));
+  c.height = h ?? Math.max(1, Math.round(img.naturalHeight * scale));
+  return c;
+}
+function drawOn(img, canvas, bg){
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  if (bg){ ctx.fillStyle = bg; ctx.fillRect(0,0,canvas.width,canvas.height); }
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return ctx;
+}
+
+/* ---------- BMP (32-bit BGRA, V4 header, top-down) ---------- */
+const hasAlphaPx = px => { for (let i=3;i<px.length;i+=4) if (px[i] !== 255) return true; return false; };
+
+function encodeBMP24(px, w, h){ // opaque images: 24-bit BGR, 25% smaller than 32-bit
+  const stride = (w*3+3) & ~3, size = stride*h, off = 14+40;
+  const buf = new ArrayBuffer(off+size), dv = new DataView(buf), b = new Uint8Array(buf);
+  b[0]=0x42; b[1]=0x4D; u32(dv,2,off+size); u32(dv,10,off);
+  u32(dv,14,40); dv.setInt32(18,w,true); dv.setInt32(22,-h,true);
+  dv.setUint16(26,1,true); dv.setUint16(28,24,true); u32(dv,34,size); u32(dv,38,2835); u32(dv,42,2835);
+  for (let y=0;y<h;y++){
+    let i = y*w*4, o = off + y*stride;
+    for (let x=0;x<w;x++,i+=4,o+=3){ b[o]=px[i+2]; b[o+1]=px[i+1]; b[o+2]=px[i]; }
+  }
+  return new Blob([buf],{type:"image/bmp"});
+}
+
+function encodeBMP(ctx, w, h){
+  const px = ctx.getImageData(0,0,w,h).data;
+  if (!hasAlphaPx(px)) return encodeBMP24(px, w, h);
+  const size = w*h*4, off = 14+108;
+  const buf = new ArrayBuffer(off+size), dv = new DataView(buf), b = new Uint8Array(buf);
+  b[0]=0x42; b[1]=0x4D; u32(dv,2,off+size); u32(dv,10,off);
+  u32(dv,14,108); dv.setInt32(18,w,true); dv.setInt32(22,-h,true);
+  dv.setUint16(26,1,true); dv.setUint16(28,32,true); u32(dv,30,3); u32(dv,34,size);
+  u32(dv,38,2835); u32(dv,42,2835);
+  u32(dv,54,0x00FF0000); u32(dv,58,0x0000FF00); u32(dv,62,0x000000FF); u32(dv,66,0xFF000000);
+  u32(dv,70,0x73524742); // 'sRGB'
+  for (let i=0,o=off;i<px.length;i+=4,o+=4){ b[o]=px[i+2]; b[o+1]=px[i+1]; b[o+2]=px[i]; b[o+3]=px[i+3]; }
+  return new Blob([buf],{type:"image/bmp"});
+}
+
+/* ---------- TIFF (uncompressed RGBA, little-endian) ---------- */
+function encodeTIFF(ctx, w, h){
+  const px = ctx.getImageData(0,0,w,h).data, alpha = hasAlphaPx(px), spp = alpha ? 4 : 3;
+  const n = alpha ? 10 : 9, ifdLen = 2+n*12+4, bpsOff = 8+ifdLen, dataOff = bpsOff+8, size = w*h*spp;
+  const buf = new ArrayBuffer(dataOff+size), dv = new DataView(buf), b = new Uint8Array(buf);
+  b[0]=0x49; b[1]=0x49; dv.setUint16(2,42,true); u32(dv,4,8);
+  dv.setUint16(8,n,true);
+  let o = 10;
+  const ent = (tag,type,count,val) => { dv.setUint16(o,tag,true); dv.setUint16(o+2,type,true); u32(dv,o+4,count);
+    if (type===3 && count===1) dv.setUint16(o+8,val,true); else u32(dv,o+8,val); o += 12; };
+  ent(256,4,1,w); ent(257,4,1,h); ent(258,3,spp,bpsOff); ent(259,3,1,1); ent(262,3,1,2);
+  ent(273,4,1,dataOff); ent(277,3,1,spp); ent(278,4,1,h); ent(279,4,1,size); if (alpha) ent(338,3,1,2);
+  for (let i=0;i<spp;i++) dv.setUint16(bpsOff+i*2,8,true);
+  if (alpha) b.set(px, dataOff);
+  else for (let i=0,o=dataOff;i<px.length;i+=4,o+=3){ b[o]=px[i]; b[o+1]=px[i+1]; b[o+2]=px[i+2]; }
+  return new Blob([buf],{type:"image/tiff"});
+}
+
+/* ---------- PNG (own encoder: RGB when opaque, adaptive filters, optional 256-colour palette) ---------- */
+async function deflate(u8){
+  const cs = new CompressionStream("deflate"), wr = cs.writable.getWriter();
+  wr.write(u8).catch(()=>{}); wr.close().catch(()=>{});
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}
+function pngChunk(type, data){
+  const t = new Uint8Array(4+data.length);
+  for (let i=0;i<4;i++) t[i] = type.charCodeAt(i);
+  t.set(data, 4);
+  const out = new Uint8Array(12+data.length), dv = new DataView(out.buffer);
+  dv.setUint32(0, data.length); out.set(t, 4); dv.setUint32(8+data.length, crc32(t));
+  return out;
+}
+// Prefix each row with the PNG filter (None/Sub/Up/Average/Paeth) that looks cheapest to compress.
+function filterRows(data, w, h, bpp, adaptive){
+  const stride = w*bpp, out = new Uint8Array((stride+1)*h), zero = new Uint8Array(stride);
+  const cand = [0,1,2,3,4].map(() => new Uint8Array(stride));
+  for (let y=0;y<h;y++){
+    const row = data.subarray(y*stride,(y+1)*stride), prev = y ? data.subarray((y-1)*stride,y*stride) : zero;
+    let best = 0;
+    if (adaptive){
+      for (let i=0;i<stride;i++){
+        const a = i>=bpp ? row[i-bpp] : 0, b = prev[i], c = i>=bpp ? prev[i-bpp] : 0, x = row[i];
+        const p = a+b-c, pa = Math.abs(p-a), pb = Math.abs(p-b), pc = Math.abs(p-c);
+        cand[0][i] = x; cand[1][i] = x-a; cand[2][i] = x-b; cand[3][i] = x-((a+b)>>1);
+        cand[4][i] = x-(pa<=pb && pa<=pc ? a : pb<=pc ? b : c);
+      }
+      let min = Infinity;
+      for (let f=0;f<5;f++){ let s=0; const r=cand[f]; for (let i=0;i<stride;i++){ const v=r[i]; s += v<128 ? v : 256-v; } if (s<min){min=s;best=f;} }
+    } else cand[0].set(row);
+    out[y*(stride+1)] = best; out.set(cand[best], y*(stride+1)+1);
+  }
+  return out;
+}
+// Median-cut quantiser: up to 256 colours (+alpha), returns palette and per-pixel indices.
+function quantize(px, hasAlpha){
+  const n = px.length/4, ch = hasAlpha ? 4 : 3, step = Math.max(1, Math.floor(n/50000));
+  const ids = []; for (let i=0;i<n;i+=step) ids.push(i);
+  const mk = list => {
+    const mn=[255,255,255,255], mx=[0,0,0,0];
+    for (const p of list) for (let c=0;c<ch;c++){ const v=px[p*4+c]; if (v<mn[c]) mn[c]=v; if (v>mx[c]) mx[c]=v; }
+    let wc=0, span=-1; for (let c=0;c<ch;c++) if (mx[c]-mn[c]>span){ span=mx[c]-mn[c]; wc=c; }
+    return {list, wc, span};
+  };
+  const boxes = [mk(ids)];
+  while (boxes.length < 256){
+    let bi=-1, bs=0;
+    boxes.forEach((b,i) => { if (b.list.length>1 && b.span>bs){ bs=b.span; bi=i; } });
+    if (bi<0) break;
+    const b = boxes[bi], c = b.wc;
+    b.list.sort((p,q) => px[p*4+c]-px[q*4+c]);
+    const mid = b.list.length>>1;
+    boxes.splice(bi,1, mk(b.list.slice(0,mid)), mk(b.list.slice(mid)));
+  }
+  const pal = boxes.map(b => { const s=[0,0,0,0]; for (const p of b.list) for (let c=0;c<4;c++) s[c]+=px[p*4+c];
+    return s.map(v => Math.round(v/b.list.length)); });
+  const cache = new Int16Array(1<<17).fill(-1), idx = new Uint8Array(n);
+  for (let i=0;i<n;i++){
+    const o=i*4, r=px[o], g=px[o+1], bl=px[o+2], a=hasAlpha ? px[o+3] : 255;
+    const key = ((r>>3)<<12)|((g>>3)<<7)|((bl>>3)<<2)|(a>>6);
+    let k = cache[key];
+    if (k<0){
+      let bd=Infinity;
+      for (let j=0;j<pal.length;j++){
+        const q=pal[j], d=(q[0]-r)**2+(q[1]-g)**2+(q[2]-bl)**2+(hasAlpha ? (q[3]-a)**2 : 0);
+        if (d<bd){bd=d;k=j;}
+      }
+      cache[key]=k;
+    }
+    idx[i]=k;
+  }
+  return {pal, idx};
+}
+async function encodePNG(ctx, w, h, palette){
+  const canvasBlob = () => toBlob(ctx.canvas, "image/png");
+  if (typeof CompressionStream === "undefined") return canvasBlob();
+  const px = ctx.getImageData(0,0,w,h).data, alpha = hasAlphaPx(px), n = w*h;
+  const sig = Uint8Array.of(137,80,78,71,13,10,26,10), ihdr = new Uint8Array(13), dv = new DataView(ihdr.buffer);
+  dv.setUint32(0,w); dv.setUint32(4,h); ihdr[8] = 8;
+  const parts = [sig]; let raw;
+  if (palette){
+    const {pal, idx} = quantize(px, alpha);
+    ihdr[9] = 3;
+    parts.push(pngChunk("IHDR", ihdr), pngChunk("PLTE", Uint8Array.from(pal.flatMap(q => [q[0],q[1],q[2]]))));
+    if (alpha) parts.push(pngChunk("tRNS", Uint8Array.from(pal.map(q => q[3]))));
+    raw = filterRows(idx, w, h, 1, false);
+  } else {
+    const bpp = alpha ? 4 : 3, data = alpha ? new Uint8Array(px.buffer, px.byteOffset, px.length) : new Uint8Array(n*3);
+    if (!alpha) for (let i=0,o=0;i<px.length;i+=4,o+=3){ data[o]=px[i]; data[o+1]=px[i+1]; data[o+2]=px[i+2]; }
+    ihdr[9] = alpha ? 6 : 2;
+    parts.push(pngChunk("IHDR", ihdr));
+    raw = filterRows(data, w, h, bpp, true);
+  }
+  parts.push(pngChunk("IDAT", await deflate(raw)), pngChunk("IEND", new Uint8Array(0)));
+  const mine = new Blob(parts, {type:"image/png"});
+  if (palette) return mine;
+  const std = await canvasBlob(); // keep whichever lossless encoding came out smaller
+  return std && std.size < mine.size ? std : mine;
+}
+
+/* ---------- ICO (single PNG-compressed image) ---------- */
+async function encodeICO(img, sizePx, bg){
+  const c = document.createElement("canvas"); c.width = c.height = sizePx;
+  const ctx = c.getContext("2d");
+  const s = Math.min(sizePx/img.naturalWidth, sizePx/img.naturalHeight);
+  const dw = img.naturalWidth*s, dh = img.naturalHeight*s;
+  if (bg){ ctx.fillStyle=bg; ctx.fillRect(0,0,sizePx,sizePx); }
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img,(sizePx-dw)/2,(sizePx-dh)/2,dw,dh);
+  const png = new Uint8Array(await (await toBlob(c,"image/png")).arrayBuffer());
+  const head = new ArrayBuffer(22), dv = new DataView(head);
+  dv.setUint16(2,1,true); dv.setUint16(4,1,true);
+  dv.setUint8(6, sizePx>=256?0:sizePx); dv.setUint8(7, sizePx>=256?0:sizePx);
+  dv.setUint16(12,32,true); u32(dv,14,png.length); u32(dv,18,22);
+  return new Blob([head,png],{type:"image/x-icon"});
+}
+
+/* ---------- GIF (216-colour palette, optional Floyd–Steinberg, 1-bit transparency) ---------- */
+function encodeGIF(ctx, w, h, dither){
+  const src = ctx.getImageData(0,0,w,h).data;
+  const f = new Float32Array(w*h*3), alpha = new Uint8Array(w*h), idx = new Uint8Array(w*h);
+  for (let i=0;i<w*h;i++){ f[i*3]=src[i*4]; f[i*3+1]=src[i*4+1]; f[i*3+2]=src[i*4+2]; alpha[i]=src[i*4+3]; }
+  const q = v => Math.max(0, Math.min(5, Math.round(v/51)));
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++){
+    const i = y*w+x;
+    if (alpha[i] < 128){ idx[i] = 216; continue; }
+    const r=q(f[i*3]), g=q(f[i*3+1]), bl=q(f[i*3+2]);
+    idx[i] = r*36+g*6+bl;
+    if (dither){
+      const e=[f[i*3]-r*51, f[i*3+1]-g*51, f[i*3+2]-bl*51];
+      const spread=(xx,yy,k)=>{ if(xx<0||xx>=w||yy>=h) return; const j=(yy*w+xx)*3; f[j]+=e[0]*k; f[j+1]+=e[1]*k; f[j+2]+=e[2]*k; };
+      spread(x+1,y,7/16); spread(x-1,y+1,3/16); spread(x,y+1,5/16); spread(x+1,y+1,1/16);
+    }
+  }
+  const out = [];
+  const push = (...a) => out.push(...a);
+  const w16 = v => push(v&255, v>>8&255);
+  push(...[..."GIF89a"].map(c=>c.charCodeAt(0)));
+  w16(w); w16(h); push(0xF7, 0, 0); // global table, 256 entries
+  for (let r=0;r<6;r++) for (let g=0;g<6;g++) for (let b=0;b<6;b++) push(r*51,g*51,b*51);
+  for (let i=216;i<256;i++) push(0,0,0);
+  push(0x21,0xF9,4,1,0,0,216,0); // graphic control: transparent index 216
+  push(0x2C); w16(0); w16(0); w16(w); w16(h); push(0, 8);
+  const data = lzw(idx);
+  for (let i=0;i<data.length;i+=255){ const n=Math.min(255,data.length-i); push(n); for(let j=0;j<n;j++) push(data[i+j]); }
+  push(0, 0x3B);
+  return new Blob([new Uint8Array(out)],{type:"image/gif"});
+}
+function lzw(indices){
+  const bytes = []; let acc=0, nbits=0, codeSize=9, next=258, dict=new Map();
+  const emit = c => { acc |= c << nbits; nbits += codeSize; while(nbits>=8){ bytes.push(acc&255); acc>>>=8; nbits-=8; } };
+  emit(256);
+  let prefix = indices[0];
+  for (let i=1;i<indices.length;i++){
+    const k = indices[i], key = prefix*256+k, hit = dict.get(key);
+    if (hit !== undefined){ prefix = hit; continue; }
+    emit(prefix);
+    if (next < 4096){ dict.set(key,next); if (next === (1<<codeSize)) codeSize++; next++; }
+    else { emit(256); dict.clear(); next=258; codeSize=9; }
+    prefix = k;
+  }
+  emit(prefix); emit(257);
+  if (nbits>0) bytes.push(acc&255);
+  return bytes;
+}
+
+/* ---------- ZIP (store only) ---------- */
+const CRC = (() => { const t=new Uint32Array(256); for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;} return t; })();
+function crc32(u8){ let c=~0; for(let i=0;i<u8.length;i++) c=CRC[(c^u8[i])&255]^(c>>>8); return ~c>>>0; }
+async function makeZip(files){
+  const parts=[], central=[]; let offset=0; const enc=new TextEncoder();
+  for (const f of files){
+    const name=enc.encode(f.name), data=new Uint8Array(await f.blob.arrayBuffer()), crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true); lh.setUint16(26,name.length,true);
+    parts.push(lh.buffer,name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true); ch.setUint16(28,name.length,true);
+    ch.setUint32(42,offset,true);
+    central.push(ch.buffer,name);
+    offset += 30+name.length+data.length;
+  }
+  const csize = central.reduce((s,p)=>s+(p.byteLength??p.length),0);
+  const end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,files.length,true); end.setUint16(10,files.length,true);
+  end.setUint32(12,csize,true); end.setUint32(16,offset,true);
+  return new Blob([...parts,...central,end.buffer],{type:"application/zip"});
+}
+
+/* ---------- conversion ---------- */
+async function encodeCanvas(c, F, q){
+  const blob = await toBlob(c, F.mime, q);
+  if (!blob || blob.type !== F.mime) throw new Error(F.label+" encoding is not supported by this browser");
+  return blob;
+}
+
+/* Find the highest quality whose output fits under `limit` bytes.
+   If even the lowest quality is too big, shrink the dimensions and retry. */
+async function fitToSize(c, F, limit, step){
+  let cv = c, k = 0, low;
+  const enc = async q => { const b = await encodeCanvas(cv, F, q); await step(0.45 + 0.5*Math.min(1, ++k/14)); return b; };
+  for (let round = 0; round < 5; round++){
+    const top = await enc(0.95);
+    if (top.size <= limit) return {blob:top, q:0.95, cv};
+    low = await enc(0.05);
+    if (low.size <= limit){
+      let lo = 0.05, hi = 0.95, best = low, bq = 0.05;
+      for (let i = 0; i < 6; i++){
+        const mid = (lo+hi)/2, m = await enc(mid);
+        if (m.size <= limit){ best = m; bq = mid; lo = mid; } else hi = mid;
+      }
+      return {blob:best, q:bq, cv};
+    }
+    if (round === 4) break;
+    const f = Math.min(0.9, Math.max(0.1, Math.sqrt(limit/low.size)*0.6));
+    const nc = document.createElement("canvas");
+    nc.width = Math.max(1, Math.round(cv.width*f)); nc.height = Math.max(1, Math.round(cv.height*f));
+    const nx = nc.getContext("2d"); nx.imageSmoothingQuality = "high"; nx.drawImage(cv, 0, 0, nc.width, nc.height);
+    cv = nc;
+  }
+  return {blob:low, q:0.05, cv, miss:true};
+}
+
+async function convert(img, key, step = async()=>{}, info = {}){
+  const F = FORMATS[key], scale = $("scale").value/100, q = $("q").value/100;
+  const bg = F.alpha ? null : $("bg").value;
+  await step(0.15);
+  if (key === "ico") { await step(0.4); return encodeICO(img, +$("ico").value, null); }
+  const c = makeCanvas(img, scale);
+  const ctx = drawOn(img, c, bg);
+  await step(0.45);
+  info.w = c.width; info.h = c.height;
+  if (key === "png"){ info.pal = $("pngmode").value === "pal"; return encodePNG(ctx, c.width, c.height, info.pal); }
+  if (key === "bmp") return encodeBMP(ctx, c.width, c.height);
+  if (key === "tiff") return encodeTIFF(ctx, c.width, c.height);
+  if (key === "gif") return encodeGIF(ctx, c.width, c.height, $("dither").value==="1");
+  if (F.quality && $("mode").value === "target"){
+    const kb = Math.max(10, +$("target").value || 500);
+    const r = await fitToSize(c, F, kb*1024, step);
+    Object.assign(info, {q:Math.round(r.q*100), target:kb, w:r.cv.width, h:r.cv.height,
+      resized:r.cv !== c, miss:r.blob.size > kb*1024});
+    return r.blob;
+  }
+  if (F.quality) info.q = Math.round(q*100);
+  return encodeCanvas(c, F, F.quality ? q : undefined);
+}
+
+/* ---------- state / UI ---------- */
+const items = []; // {file,img,url,out:{blob,name,url}}
+const fmtSel = $("fmt");
+
+async function init(){
+  for (const [k,F] of Object.entries(FORMATS)){
+    let ok = true;
+    if (F.probe){ const c=document.createElement("canvas"); c.width=c.height=1; const b=await toBlob(c,F.mime); ok = !!b && b.type===F.mime; }
+    if (ok) fmtSel.add(new Option(F.label+" (."+F.ext+")", k));
+  }
+  fmtSel.value = "png"; updateOpts();
+}
+function updateOpts(){
+  const k = fmtSel.value, F = FORMATS[k];
+  const tm = $("mode").value === "target";
+  $("modeWrap").hidden = !F.quality;
+  $("qWrap").hidden = !F.quality || tm;
+  $("tWrap").hidden = !F.quality || !tm;
+  $("bgWrap").hidden = F.alpha;
+  $("icoWrap").hidden = k!=="ico";
+  $("scale").parentElement.hidden = k==="ico";
+  $("ditherWrap").hidden = k!=="gif";
+  $("pngWrap").hidden = k!=="png";
+  $("hint").textContent = ({
+    png:"Full colour is lossless, so photos can still be several times larger than JPEG. \"256 colours\" is far smaller (like TinyPNG) but lossy and may show banding in photos; it is ideal for logos and screenshots.",
+    webp:"WebP is typically 25–35% smaller than JPEG at similar quality. Lower the quality slider to shrink further.",
+    avif:"AVIF gives the smallest files for photos, but encoding is slower.",
+    jpeg:"JPEG has no transparency; transparent areas are filled with the background colour.",
+    gif:"GIF output uses a 216-colour palette with 1-bit transparency (still image).",
+    ico:"ICO output is a single square icon; the image is fitted and centred.",
+    tiff:"TIFF output is uncompressed RGBA: expect files many times larger than JPEG or PNG.",
+    bmp:"BMP is uncompressed (24-bit when there is no transparency, 32-bit otherwise): expect files many times larger than JPEG or PNG."
+  })[k] || "";
+  if (F.quality && tm) $("hint").textContent = "Finds the highest quality that fits under the size you set. If even the lowest quality is too big, the image is also shrunk to fit.";
+  items.forEach(it => { clearOut(it); });
+  render();
+}
+function clearOut(it){ if (it.out){ URL.revokeObjectURL(it.out.url); it.out=null; } it.status=null; }
+
+const MAX_FILE_MB = 25, MAX_MEGAPIXELS = 50, MAX_BATCH_MB = 200;
+$("limits").textContent = `Limits: ${MAX_FILE_MB} MB and ${MAX_MEGAPIXELS} megapixels per image, ${MAX_BATCH_MB} MB in total`;
+const batchBytes = () => items.reduce((s,it) => s + it.file.size, 0);
+
+async function addFiles(files){
+  const rejected = [];
+  for (const file of files){
+    if (!file.type.startsWith("image/") && !/\.(tiff?|ico|bmp|avif|webp|svg)$/i.test(file.name)) continue;
+    if (file.size > MAX_FILE_MB*1048576){
+      rejected.push(`${file.name}: ${fmtSize(file.size)} exceeds the ${MAX_FILE_MB} MB limit`); continue;
+    }
+    if (batchBytes() + file.size > MAX_BATCH_MB*1048576){
+      rejected.push(`${file.name}: adding it would exceed the ${MAX_BATCH_MB} MB total limit (remove some images or click Clear)`); continue;
+    }
+    const url = URL.createObjectURL(file), img = new Image();
+    const it = {file, url, img, out:null, status:null};
+    img.src = url;
+    try {
+      await img.decode();
+      if(!img.naturalWidth) img.width=512, Object.defineProperty(img,"naturalWidth",{value:512}), Object.defineProperty(img,"naturalHeight",{value:512});
+      const mp = img.naturalWidth*img.naturalHeight/1e6;
+      if (mp > MAX_MEGAPIXELS){
+        URL.revokeObjectURL(url);
+        rejected.push(`${file.name}: ${mp.toFixed(0)} MP exceeds the ${MAX_MEGAPIXELS} MP limit`); continue;
+      }
+    } catch { it.status = {err:true,msg:"This browser cannot decode this file"}; }
+    items.push(it);
+  }
+  const n = $("notice");
+  n.hidden = !rejected.length;
+  n.replaceChildren(...rejected.map(t => Object.assign(document.createElement("div"),{textContent:"Skipped – "+t})));
+  render();
+}
+
+function render(){
+  $("list").hidden = !items.length;
+  $("count").textContent = `${items.length} image${items.length===1?"":"s"}`;
+  const list = $("items"); list.innerHTML = "";
+  $("go").disabled = $("clear").disabled = !items.length;
+  $("zip").disabled = !items.some(i=>i.out);
+  items.forEach((it,i) => {
+    const d = document.createElement("div"); d.className = "item";
+    const dim = it.img.naturalWidth ? ` · ${it.img.naturalWidth}×${it.img.naturalHeight}` : "";
+    let status = "";
+    if (it.status) status = `<div class="info err">${it.status.msg}</div>`;
+    else if (it.out){
+      const pct = Math.round(it.out.blob.size/it.file.size*100-100), inf = it.out.info || {};
+      const extra = [qualityText(it.out.fmt, inf), inf.resized ? `resized to ${inf.w}×${inf.h}` : ""].filter(Boolean).join(" · ");
+      status = `<div class="info ok">→ ${it.out.name} · ${fmtSize(it.out.blob.size)} (${pct>=0?"+":""}${pct}%)${extra ? " · "+extra : ""}</div>`;
+      if (inf.miss) status += `<div class="info err">Could not get under ${inf.target} KB; this is the smallest result.</div>`;
+    }
+    d.innerHTML = `<img src="${it.url}" alt=""><div class="meta"><div class="name"></div><div class="info">${fmtSize(it.file.size)}${dim}</div>${status}</div>`;
+    d.querySelector(".name").textContent = it.file.name;
+    if (it.out){
+      const th = d.querySelector("img"); th.classList.add("zoom"); th.title = "Compare"; th.onclick = () => openCompare(it);
+      const cb = document.createElement("button"); cb.textContent = "Compare"; cb.onclick = () => openCompare(it); d.append(cb);
+      const a=document.createElement("a"); a.className="dl"; a.href=it.out.url; a.download=it.out.name; a.textContent="Download"; d.append(a);
+    }
+    const x=document.createElement("button"); x.textContent="✕"; x.title="Remove";
+    x.onclick=()=>{ clearOut(it); URL.revokeObjectURL(it.url); items.splice(i,1); render(); };
+    d.append(x); list.append(d);
+  });
+}
+
+$("go").onclick = async () => {
+  const key = fmtSel.value, F = FORMATS[key];
+  $("go").disabled = true;
+  const todo = items.filter(it => !(it.status?.err && !it.img.naturalWidth));
+  let done = 0;
+  const paint = () => new Promise(r => requestAnimationFrame(() => setTimeout(r)));
+  setProgress(0, `Starting… 0 of ${todo.length}`);
+  await paint();
+  for (const it of todo){
+    clearOut(it);
+    const label = f => `Converting ${done+1} of ${todo.length} · ${it.file.name}`;
+    const step = async f => { setProgress((done+f)/todo.length, label()); await paint(); };
+    try {
+      const info = {};
+      const blob = await convert(it.img, key, step, info);
+      const name = it.file.name.replace(/\.[^.]+$/,"") + "." + F.ext;
+      it.out = {blob, name, url:URL.createObjectURL(blob), fmt:key, info};
+    } catch(e){ it.status = {err:true,msg:e.message}; }
+    done++;
+    setProgress(done/todo.length, done<todo.length ? `Converted ${done} of ${todo.length}` : "");
+    render();
+    await paint();
+  }
+  setProgress(1, `Done · ${todo.length} file${todo.length===1?"":"s"} converted`, true);
+  $("go").disabled = false; render();
+};
+
+function qualityText(key, inf){
+  if (inf.pal) return "256 colours (lossy)";
+  if (inf.q != null) return `quality ${inf.q}%` + (inf.target ? ` (fit to ${inf.target} KB)` : "");
+  return key === "gif" ? "256-colour palette" : (key === "ico" ? "" : "lossless");
+}
+
+/* ---------- before / after compare ---------- */
+function openCompare(it){
+  if (!it.out) return;
+  const dlg = $("cmpDlg"), cmp = $("cmp"), A = $("cmpA"), B = $("cmpB"), err = $("cmpErr"), F = FORMATS[it.out.fmt];
+  const ratio = (it.img.naturalWidth/it.img.naturalHeight) || 1;
+  cmp.style.aspectRatio = String(ratio);
+  cmp.style.width = `min(100%, ${(68*ratio).toFixed(2)}vh)`;
+  cmp.hidden = false; err.hidden = true;
+  B.onload = () => { cmp.hidden = false; err.hidden = true; };
+  B.onerror = () => { cmp.hidden = true; err.hidden = false;
+    err.textContent = `This browser can't display ${F.label} files, so there is no preview. The converted file itself is fine.`; };
+  A.src = it.url; B.src = it.out.url;
+  $("cmpRange").value = 50; setCmp(50);
+  $("cmpTitle").textContent = `${it.file.name} → ${it.out.name}`;
+  const inf = it.out.info || {};
+  const put = (id, title, text) => { const el = $(id); el.querySelector("b").textContent = title; el.querySelector("em").textContent = text; };
+  put("statA", "Original", `${fmtSize(it.file.size)} · ${it.img.naturalWidth}×${it.img.naturalHeight}`);
+  const dims = inf.w ? ` · ${inf.w}×${inf.h}` : "", qt = qualityText(it.out.fmt, inf);
+  put("statB", `Converted · ${F.label}`, `${fmtSize(it.out.blob.size)}${dims}${qt ? " · "+qt : ""}`);
+  dlg.showModal();
+}
+function setCmp(v){
+  v = +v;
+  $("cmpB").style.clipPath = `inset(0 0 0 ${v}%)`; $("cmpDiv").style.left = v + "%";
+  // Original is visible on the left (v%), converted on the right (100-v%).
+  const a = $("statA"), b = $("statB");
+  a.classList.toggle("on", v >= 50); b.classList.toggle("on", v <= 50);
+  a.querySelector(".live").textContent = v > 0 ? `● Showing ${v}%` : "";
+  b.querySelector(".live").textContent = v < 100 ? `● Showing ${100-v}%` : "";
+}
+$("cmpRange").oninput = e => setCmp(e.target.value);
+$("cmpClose").onclick = () => $("cmpDlg").close();
+$("cmpDlg").addEventListener("click", e => { if (e.target === $("cmpDlg")) $("cmpDlg").close(); });
+$("mode").onchange = updateOpts;
+$("pngmode").onchange = updateOpts;
+
+let progTimer;
+function setProgress(frac, text, finished){
+  const p = $("progress"), pct = Math.round(frac*100);
+  clearTimeout(progTimer);
+  p.hidden = false; p.classList.toggle("done", !!finished);
+  $("pbar").style.width = pct + "%";
+  $("ppct").textContent = pct + "%";
+  if (text) $("ptext").textContent = text;
+  p.querySelector("[role=progressbar]").setAttribute("aria-valuenow", pct);
+  if (finished) progTimer = setTimeout(() => { p.hidden = true; }, 4000);
+}
+$("zip").onclick = async () => {
+  const seen = new Map(), files = [];
+  for (const it of items) if (it.out){
+    let n = it.out.name; const c = seen.get(n)||0; seen.set(n,c+1);
+    if (c) n = n.replace(/(\.[^.]+)$/, `_${c}$1`);
+    files.push({name:n, blob:it.out.blob});
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(await makeZip(files)); a.download = "converted-images.zip"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+};
+$("clear").onclick = () => { items.forEach(it=>{clearOut(it);URL.revokeObjectURL(it.url);}); items.length=0; render(); };
+fmtSel.onchange = updateOpts;
+$("q").oninput = e => $("qv").textContent = e.target.value;
+$("scale").oninput = e => $("sv").textContent = e.target.value;
+const drop = $("drop"), fileIn = $("file");
+drop.onclick = () => fileIn.click();
+fileIn.onchange = () => { addFiles(fileIn.files); fileIn.value=""; };
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+window.addEventListener("paste", e => { const fs=[...e.clipboardData.files]; if(fs.length) addFiles(fs); });
+init();
+</script>
+</body>
+</html>

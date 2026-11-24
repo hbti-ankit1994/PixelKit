@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toolbox</title>
+<meta name="description" content="Free photo tools that run entirely in your browser: image converter, collage maker, filter studio and meme generator.">
+<style>
+:root{
+  --bg:#f6f7fb;--surface:rgba(255,255,255,.72);--solid:#fff;--fg:#0f172a;--muted:#5b6679;--border:rgba(15,23,42,.09);
+  --accent:#6366f1;--accent2:#8b5cf6;--soft:rgba(99,102,241,.1);
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 18px 40px -18px rgba(15,23,42,.22);--shadow-hover:0 2px 4px rgba(15,23,42,.05),0 28px 56px -18px rgba(79,70,229,.38);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0a0c13;--surface:rgba(24,27,38,.72);--solid:#171a25;--fg:#e9ecf4;--muted:#9aa4b8;--border:rgba(255,255,255,.09);
+  --accent:#818cf8;--accent2:#a78bfa;--soft:rgba(129,140,248,.14);
+  --shadow:0 18px 40px -18px rgba(0,0,0,.7);--shadow-hover:0 28px 56px -18px rgba(99,102,241,.5);
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light dark;scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);overflow-x:hidden;
+  font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+/* soft animated colour glow behind everything */
+.glow{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.glow i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:drift 22s ease-in-out infinite alternate}
+.glow i:nth-child(1){width:46rem;height:46rem;left:-12rem;top:-16rem;background:radial-gradient(circle,rgba(99,102,241,.55),transparent 65%)}
+.glow i:nth-child(2){width:40rem;height:40rem;right:-10rem;top:-8rem;background:radial-gradient(circle,rgba(236,72,153,.4),transparent 65%);animation-delay:-8s}
+.glow i:nth-child(3){width:36rem;height:36rem;left:35%;top:40rem;background:radial-gradient(circle,rgba(20,184,166,.28),transparent 65%);animation-delay:-14s}
+@keyframes drift{to{transform:translate(40px,30px) scale(1.08)}}
+@media (prefers-color-scheme:dark){.glow i{opacity:.35}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.15rem;letter-spacing:-.02em;color:inherit;text-decoration:none}
+.mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -6px var(--accent)}
+.mark svg{width:22px;height:22px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:99px;font-size:.82rem;font-weight:600;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pill b{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.18)}
+
+/* hero */
+.hero{text-align:center;padding:56px 0 44px}
+.eyebrow{display:inline-block;margin-bottom:18px}
+h1{margin:0 auto;max-width:15ch;font-size:clamp(2.4rem,6.4vw,4.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(120deg,#6366f1,#ec4899 55%,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:36rem;margin:20px auto 0;color:var(--muted);font-size:1.12rem}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:14px;font:inherit;font-weight:700;font-size:.95rem;text-decoration:none;
+  border:1px solid var(--border);color:var(--fg);background:var(--surface);cursor:pointer;transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 14px 30px -10px var(--accent)}
+.stats{display:flex;justify-content:center;gap:clamp(18px,5vw,56px);flex-wrap:wrap;margin-top:44px}
+.stat{text-align:center}.stat b{display:block;font-size:1.7rem;letter-spacing:-.03em}.stat span{font-size:.82rem;color:var(--muted);font-weight:600}
+
+/* section header + filter */
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:26px 0 22px}
+.sec-head h2{margin:0;font-size:1.7rem;letter-spacing:-.03em}
+.sec-head p{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 16px;border-radius:99px;font:inherit;font-size:.85rem;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:.18s}
+.chip:hover{color:var(--fg)}
+.chip[aria-pressed=true]{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 22px -10px var(--accent)}
+
+/* bento grid */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.card{grid-column:span var(--span,6);position:relative;display:flex;flex-direction:column;overflow:hidden;border-radius:28px;text-decoration:none;color:inherit;
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .28s;animation:rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*90ms)}
+.card:hover,.card:focus-visible{transform:translateY(-6px);box-shadow:var(--shadow-hover);border-color:color-mix(in srgb,var(--c1) 55%,transparent);outline:none}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.art{position:relative;height:250px;overflow:hidden;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.art::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 80% at 85% 0%,rgba(255,255,255,.35),transparent 60%),radial-gradient(50% 70% at 0% 100%,rgba(0,0,0,.18),transparent 65%)}
+.art svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.card:hover .art svg{transform:scale(1.045) translateY(-4px)}
+.badge{position:absolute;top:16px;left:16px;z-index:2;padding:5px 12px;border-radius:99px;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:rgba(15,23,42,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.body{display:flex;flex-direction:column;gap:10px;padding:24px 26px 26px;flex:1}
+.body h3{margin:0;font-size:1.5rem;letter-spacing:-.03em;line-height:1.2}
+.tagline{margin:-4px 0 0;font-weight:700;font-size:.9rem;color:var(--c1)}
+.body p{margin:0;color:var(--muted);font-size:.95rem}
+.points{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:7px}
+.points li{display:flex;gap:10px;align-items:center;font-size:.9rem;font-weight:600}
+.points svg{flex:none;width:18px;height:18px;padding:3px;border-radius:50%;color:#fff;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:16px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:99px;color:var(--c1);background:color-mix(in srgb,var(--c1) 12%,transparent)}
+.open{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:.92rem;color:var(--c1);white-space:nowrap}
+.open svg{width:20px;height:20px;transition:transform .25s}
+.card:hover .open svg{transform:translateX(5px)}
+.soon{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:12px;padding:22px;border-radius:24px;border:2px dashed var(--border);color:var(--muted);font-weight:600;text-align:center}
+
+/* why strip */
+.why{margin:84px 0 20px}
+.why h2{margin:0 0 6px;text-align:center;font-size:1.7rem;letter-spacing:-.03em}
+.why>p{margin:0 auto 28px;text-align:center;max-width:34rem;color:var(--muted)}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{padding:26px;border-radius:24px;background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.feat .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;margin-bottom:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 22px -10px var(--accent)}
+.feat .ic svg{width:24px;height:24px}
+.feat h3{margin:0 0 6px;font-size:1.1rem;letter-spacing:-.02em}.feat p{margin:0;color:var(--muted);font-size:.93rem}
+
+footer{margin-top:70px;padding:28px 0 46px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.86rem}
+footer .brand{font-size:1rem}
+
+@media (max-width:900px){.card{grid-column:1/-1!important}.feats{grid-template-columns:1fr}.art{height:220px}}
+@media (max-width:520px){.hero{padding:34px 0 30px}.stats{margin-top:30px}.body{padding:20px}.sec-head{margin-top:10px}nav .pill{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.glow i{animation:none}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="wrap">
+  <nav>
+    <a class="brand" href="#top"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <span class="pill"><b></b>Runs in your browser</span>
+  </nav>
+
+  <header class="hero" id="top">
+    <span class="pill eyebrow">Free · Private · No sign-up</span>
+    <h1>Photo tools that <em>stay on your device</em></h1>
+    <p class="lead">Convert, collage, filter and meme your pictures in seconds. Your files are processed right here in the browser and are never uploaded.</p>
+    <div class="cta">
+      <a class="btn primary" href="#tools">Explore the tools
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m0 0 6-6m-6 6-6-6"/></svg></a>
+      <a class="btn" href="#why">Why Toolbox?</a>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <main id="tools">
+    <div class="sec-head">
+      <div><h2>Pick a tool</h2><p id="sub">Everything you need, nothing to install.</p></div>
+      <div class="chips" id="chips" role="group" aria-label="Filter tools"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <section class="why" id="why">
+    <h2>Built to be simple</h2>
+    <p>No accounts, no watermarks, no waiting on a server.</p>
+    <div class="feats">
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>Private by design</h3><p>Your photos are edited on your own device. Nothing you open is sent to a server.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Instant and free</h3><p>Open a tool and start. Nothing to install, no account, no limits on how often you use it.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <h3>One place for it all</h3><p>Convert a file, give it a look, build a collage or caption a meme, all from one page with the same simple controls.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <a class="brand" href="#top"><span class="mark" style="width:30px;height:30px;border-radius:9px"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <span>Your files never leave your device. The meme tool loads public templates from memegen.link and imgflip.com.</span>
+  </footer>
+</div>
+
+<script src="tools.js"></script>
+<script>
+"use strict";
+const tools = window.TOOLS || [];
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>';
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>';
+
+/* ---------- card illustrations (one per tool id) ---------- */
+const white = "#ffffff";
+const ART = {
+  "image-converter": () => `
+    <svg viewBox="0 0 520 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+            <linearGradient id="gB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+      <g transform="translate(88 44)"><rect width="132" height="158" rx="20" fill="${white}" opacity=".96"/>
+        <rect x="16" y="16" width="100" height="84" rx="12" fill="url(#gA)"/><circle cx="84" cy="42" r="10" fill="${white}" opacity=".8"/>
+        <path d="M16 100 46 64l22 24 16-14 32 26z" fill="${white}" opacity=".45"/>
+        <text x="66" y="136" text-anchor="middle" font-size="19" font-weight="800" fill="#334155" font-family="system-ui,sans-serif">PNG</text></g>
+      <g transform="translate(300 44)"><rect width="132" height="158" rx="20" fill="${white}" opacity=".96"/>
+        <rect x="16" y="16" width="100" height="84" rx="12" fill="url(#gB)"/><circle cx="84" cy="42" r="10" fill="${white}" opacity=".8"/>
+        <path d="M16 100 46 64l22 24 16-14 32 26z" fill="${white}" opacity=".45"/>
+        <text x="66" y="136" text-anchor="middle" font-size="19" font-weight="800" fill="#334155" font-family="system-ui,sans-serif">WEBP</text></g>
+      <g fill="none" stroke="${white}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M238 124h44"/><path d="M270 106l18 18-18 18"/></g>
+      <g font-family="system-ui,sans-serif" font-weight="800" font-size="13" text-anchor="middle">
+        <rect x="26" y="32" width="46" height="26" rx="13" fill="${white}" opacity=".85"/><text x="49" y="50" fill="#4f46e5">JPG</text>
+        <rect x="448" y="60" width="46" height="26" rx="13" fill="${white}" opacity=".85"/><text x="471" y="78" fill="#4f46e5">AVIF</text>
+        <rect x="30" y="190" width="46" height="26" rx="13" fill="${white}" opacity=".85"/><text x="53" y="208" fill="#4f46e5">GIF</text>
+        <rect x="444" y="176" width="52" height="26" rx="13" fill="${white}" opacity=".85"/><text x="470" y="194" fill="#4f46e5">TIFF</text></g>
+    </svg>`,
+  "collage-maker": () => `
+    <svg viewBox="0 0 520 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="cA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+            <linearGradient id="cB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a7f3d0"/><stop offset="1" stop-color="#10b981"/></linearGradient>
+            <linearGradient id="cC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbcfe8"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+            <linearGradient id="cD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+      <g transform="translate(70 34)">
+        <rect width="190" height="120" rx="14" fill="url(#cA)"/><circle cx="140" cy="38" r="16" fill="${white}" opacity=".7"/><path d="M0 120V84l50-34 40 28 36-22 64 40v24z" fill="${white}" opacity=".35"/>
+        <rect x="202" width="148" height="56" rx="14" fill="url(#cB)"/><rect x="202" y="64" width="148" height="56" rx="14" fill="url(#cC)"/>
+        <rect y="132" width="112" height="70" rx="14" fill="url(#cD)"/><rect x="120" y="132" width="112" height="70" rx="14" fill="url(#cA)"/><rect x="240" y="132" width="110" height="70" rx="14" fill="url(#cB)"/>
+      </g>
+      <g transform="translate(372 96) rotate(9)"><rect width="104" height="124" rx="8" fill="${white}"/><rect x="9" y="9" width="86" height="84" rx="4" fill="url(#cC)"/><path d="M9 93 38 62l22 20 14-12 21 23z" fill="${white}" opacity=".4"/>
+        <rect x="26" y="102" width="52" height="7" rx="3.5" fill="#cbd5e1"/></g>
+    </svg>`,
+  "filter-studio": () => `
+    <svg viewBox="0 0 520 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="fSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset=".7" stop-color="#fde68a"/><stop offset="1" stop-color="#fdba74"/></linearGradient>
+            <linearGradient id="fWarm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c3aed"/><stop offset=".6" stop-color="#fb7185"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+            <clipPath id="fL"><rect x="70" y="30" width="190" height="190" rx="20"/></clipPath><clipPath id="fR"><rect x="260" y="30" width="190" height="190" rx="20"/></clipPath></defs>
+      <g clip-path="url(#fL)"><rect x="70" y="30" width="190" height="190" fill="url(#fSky)"/><circle cx="200" cy="90" r="24" fill="#fff7d6"/>
+        <path d="M70 170l50-56 40 40 36-34 64 60v40H70z" fill="#5b7bb0"/><path d="M70 196q60-32 120-6t70-10v40H70z" fill="#3f8f5f"/></g>
+      <g clip-path="url(#fR)"><rect x="260" y="30" width="190" height="190" fill="url(#fWarm)"/><circle cx="330" cy="90" r="24" fill="#fff1c9"/>
+        <path d="M70 170l50-56 40 40 36-34 64 60v40H70z" fill="#4c1d95" transform="translate(190 0)"/><path d="M70 196q60-32 120-6t70-10v40H70z" fill="#be185d" transform="translate(190 0)"/>
+        <rect x="260" y="30" width="190" height="190" fill="#000" opacity=".08"/></g>
+      <line x1="260" y1="22" x2="260" y2="228" stroke="${white}" stroke-width="4"/>
+      <circle cx="260" cy="125" r="19" fill="${white}"/><path d="M252 125h16m-5-5 5 5-5 5m-6-10-5 5 5 5" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 0)"/>
+      <g><circle cx="42" cy="78" r="15" fill="#fde68a" stroke="${white}" stroke-width="3"/><circle cx="42" cy="124" r="15" fill="#a78bfa" stroke="${white}" stroke-width="3"/><circle cx="42" cy="170" r="15" fill="#5eead4" stroke="${white}" stroke-width="3"/>
+        <circle cx="478" cy="78" r="15" fill="#fb7185" stroke="${white}" stroke-width="3"/><circle cx="478" cy="124" r="15" fill="#93c5fd" stroke="${white}" stroke-width="3"/><circle cx="478" cy="170" r="15" fill="#fdba74" stroke="${white}" stroke-width="3"/></g>
+    </svg>`,
+  "meme-generator": () => `
+    <svg viewBox="0 0 520 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="mBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/></linearGradient>
+            <clipPath id="mClip"><rect x="110" y="22" width="300" height="206" rx="18"/></clipPath></defs>
+      <rect x="110" y="22" width="300" height="206" rx="18" fill="url(#mBg)"/>
+      <g clip-path="url(#mClip)"><circle cx="260" cy="130" r="58" fill="#fff4d6"/><circle cx="238" cy="118" r="8" fill="#3b2a1a"/><circle cx="282" cy="118" r="8" fill="#3b2a1a"/>
+        <path d="M232 146q28 26 56 0" fill="none" stroke="#3b2a1a" stroke-width="7" stroke-linecap="round"/></g>
+      <g font-family="Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif" font-size="30" font-weight="900" text-anchor="middle" fill="${white}" stroke="#000" stroke-width="6" stroke-linejoin="round" paint-order="stroke">
+        <text x="260" y="62">WHEN THE CODE WORKS</text><text x="260" y="212">ON THE FIRST TRY</text></g>
+      <g font-size="40"><text x="64" y="86" transform="rotate(-14 64 86)">😂</text><text x="440" y="70" transform="rotate(12 440 70)">🔥</text><text x="448" y="200" transform="rotate(-8 448 200)">🚀</text><text x="40" y="196" transform="rotate(10 40 196)">🐛</text></g>
+    </svg>`,
+};
+const genericArt = () => `<svg viewBox="0 0 520 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect x="170" y="55" width="180" height="140" rx="22" fill="#fff" opacity=".9"/><circle cx="260" cy="110" r="26" fill="none" stroke="#6366f1" stroke-width="8"/><path d="M200 175l40-40 28 26 24-18 28 32z" fill="#6366f1" opacity=".55"/></svg>`;
+
+/* ---------- build the page ---------- */
+let filter = "All";
+function card(t, i){
+  const a = el("a", "card"); a.href = t.path;
+  a.style.setProperty("--span", t.span || 6); a.style.setProperty("--i", i);
+  const [c1, c2] = t.accent || ["#6366f1", "#8b5cf6"]; a.style.setProperty("--c1", c1); a.style.setProperty("--c2", c2);
+  const art = el("div", "art"); art.innerHTML = (ART[t.id] || genericArt)();
+  art.append(el("span", "badge", t.category || "Tool"));
+  const body = el("div", "body");
+  body.append(el("h3", "", t.name));
+  if (t.tagline) body.append(el("div", "tagline", t.tagline));
+  body.append(el("p", "", t.description));
+  if (t.highlights && t.highlights.length){
+    const ul = el("ul", "points");
+    for (const h of t.highlights){ const li = el("li"); li.innerHTML = CHECK; li.append(document.createTextNode(h)); ul.append(li); }
+    body.append(ul);
+  }
+  const foot = el("div", "foot"), tags = el("div", "tags");
+  (t.tags || []).forEach(x => tags.append(el("span", "", x)));
+  const open = el("span", "open"); open.append(document.createTextNode("Open tool")); open.insertAdjacentHTML("beforeend", ARROW);
+  foot.append(tags, open); body.append(foot);
+  a.append(art, body);
+  return a;
+}
+function render(){
+  const grid = $("grid"); grid.replaceChildren();
+  const list = tools.filter(t => filter === "All" || t.category === filter);
+  list.forEach((t, i) => grid.append(card(t, i)));
+  // a lone card on a row should fill it
+  if (list.length === 1) grid.firstChild.style.setProperty("--span", 12);
+  const soon = el("div", "soon"); soon.append(el("span", "", "More tools are on the way."));
+  grid.append(soon);
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filter));
+}
+function build(){
+  const cats = ["All", ...new Set(tools.map(t => t.category).filter(Boolean))];
+  const chips = $("chips"); chips.hidden = cats.length < 3;
+  for (const c of cats){
+    const b = el("button", "chip", c === "All" ? `All (${tools.length})` : `${c} (${tools.filter(t => t.category === c).length})`);
+    b.type = "button"; b.dataset.f = c; b.onclick = () => { filter = c; render(); }; chips.append(b);
+  }
+  const stats = $("stats");
+  for (const [n, label] of [[tools.length, "tools"], ["130+", "photo filters"], ["169", "dev memes"], ["0", "files uploaded"]]){
+    const s = el("div", "stat"); s.append(el("b", "", String(n)), el("span", "", label)); stats.append(s);
+  }
+  render();
+}
+build();
+</script>
+</body>
+</html>

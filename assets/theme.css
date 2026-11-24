@@ -1,0 +1,70 @@
+/* Toolbox shared theme.
+   Loaded AFTER each tool's own <style>, so every tool inherits the home page's look
+   (top bar, glow background, banner heading, cards, buttons) and its own accent colour.
+   Colours stay as plain hex because some tools read --accent / --muted from JavaScript. */
+
+/* ---- per-tool accent (matches the card colours on the home page) ---- */
+html[data-tool="filter-studio"]{--accent:#ea580c;--accent2:#db2777;--accent-soft:rgba(234,88,12,.1);--glow1:rgba(249,115,22,.5);--glow2:rgba(236,72,153,.42)}
+html[data-tool="meme-generator"]{--accent:#7c3aed;--accent2:#6366f1;--accent-soft:rgba(124,58,237,.1);--glow1:rgba(139,92,246,.5);--glow2:rgba(99,102,241,.4)}
+html[data-tool="collage-maker"]{--accent:#0d9488;--accent2:#2563eb;--accent-soft:rgba(13,148,136,.1);--glow1:rgba(20,184,166,.45);--glow2:rgba(59,130,246,.4)}
+html[data-tool="image-converter"]{--accent:#2563eb;--accent2:#6366f1;--accent-soft:rgba(37,99,235,.1);--glow1:rgba(59,130,246,.48);--glow2:rgba(99,102,241,.4)}
+@media (prefers-color-scheme:dark){
+  html[data-tool="filter-studio"]{--accent:#fb923c;--accent2:#f472b6;--accent-soft:rgba(251,146,60,.15)}
+  html[data-tool="meme-generator"]{--accent:#a78bfa;--accent2:#818cf8;--accent-soft:rgba(167,139,250,.16)}
+  html[data-tool="collage-maker"]{--accent:#2dd4bf;--accent2:#60a5fa;--accent-soft:rgba(45,212,191,.15)}
+  html[data-tool="image-converter"]{--accent:#60a5fa;--accent2:#818cf8;--accent-soft:rgba(96,165,250,.16)}
+}
+:root{--glow1:rgba(99,102,241,.5);--glow2:rgba(236,72,153,.4)}
+
+/* ---- page: soft glow background like the home page ---- */
+html{scroll-behavior:smooth}
+body{background-image:none!important;overflow-x:hidden;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before,body::after{content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.55}
+body::before{width:46rem;height:46rem;left:-14rem;top:-18rem;background:radial-gradient(circle,var(--glow1),transparent 65%)}
+body::after{width:40rem;height:40rem;right:-12rem;top:-10rem;background:radial-gradient(circle,var(--glow2),transparent 65%)}
+@media (prefers-color-scheme:dark){body::before,body::after{opacity:.33}}
+main{padding-top:20px}
+
+/* ---- top bar (same as the home page) ---- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem;letter-spacing:-.02em;color:var(--fg);text-decoration:none}
+.topbar .mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 18px -6px var(--accent)}
+.topbar .mark svg{width:20px;height:20px}
+.topbar .back{margin:0;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:99px;
+  background:var(--card);border:1px solid var(--border);color:var(--fg);font-size:.85rem;font-weight:700;text-decoration:none;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .18s,color .18s,box-shadow .18s}
+.topbar .back:hover{color:var(--accent);transform:translateX(-3px);box-shadow:0 8px 20px -10px var(--accent)}
+
+/* ---- tool heading as a tinted banner ---- */
+header{position:relative;overflow:hidden;gap:16px;padding:20px 24px;margin-bottom:22px;border-radius:26px;border:1px solid var(--border);
+  background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,transparent),color-mix(in srgb,var(--accent2) 7%,transparent) 60%,transparent),var(--card);
+  box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+header::after{content:"";position:absolute;right:-60px;top:-80px;width:240px;height:240px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent2) 28%,transparent),transparent 70%)}
+header .logo{width:58px;height:58px;border-radius:18px;box-shadow:0 12px 26px -8px var(--accent)}
+header .logo svg{width:30px;height:30px}
+header h1{font-size:clamp(1.7rem,3.6vw,2.4rem);letter-spacing:-.035em;line-height:1.1}
+header p.sub{margin-top:4px;font-size:.98rem}
+
+/* ---- shared components ---- */
+.card{border-radius:24px;border:1px solid var(--border);box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+button{border-radius:14px;font-weight:700;transition:transform .18s,box-shadow .18s,background .18s,color .18s}
+button.primary{box-shadow:0 12px 26px -10px var(--accent)}
+button.primary:hover:not(:disabled){box-shadow:0 16px 32px -10px var(--accent)}
+select,textarea,input[type=text],input[type=search]{border-radius:14px}
+select:focus,textarea:focus,input[type=text]:focus,input[type=search]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+h2{letter-spacing:.07em}
+.sec+.sec{border-top-color:var(--border)}
+canvas#stage{border-radius:16px}
+
+/* ---- footer line ---- */
+main::after{content:"Toolbox · Your files never leave your device";display:block;margin-top:38px;padding-top:20px;border-top:1px solid var(--border);
+  color:var(--muted);font-size:.82rem;text-align:center}
+
+@media (max-width:640px){
+  header{padding:16px;border-radius:20px}header .logo{width:48px;height:48px;border-radius:15px}header .logo svg{width:26px;height:26px}
+  .topbar .back{padding:7px 13px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}button,.topbar .back{transition:none}}

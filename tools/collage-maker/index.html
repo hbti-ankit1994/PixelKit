@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en" data-tool="collage-maker">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Collage Maker</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:rgba(255,255,255,.78);--fg:#0f172a;--muted:#64748b;--border:rgba(15,23,42,.09);
+  --accent:#6366f1;--accent2:#8b5cf6;--accent-soft:rgba(99,102,241,.1);--field:#fff;
+  --ok:#059669;--err:#dc2626;--shadow:0 1px 2px rgba(15,23,42,.04),0 12px 32px -12px rgba(15,23,42,.14);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b0d14;--card:rgba(24,27,38,.72);--fg:#e8eaf2;--muted:#8a93a8;--border:rgba(255,255,255,.08);
+  --accent:#818cf8;--accent2:#a78bfa;--accent-soft:rgba(129,140,248,.14);--field:rgba(255,255,255,.04);
+  --ok:#34d399;--err:#f87171;--shadow:0 12px 32px -12px rgba(0,0,0,.6);
+}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);
+  font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(60rem 30rem at 10% -10%,rgba(99,102,241,.18),transparent 60%),
+                   radial-gradient(50rem 28rem at 100% 0%,rgba(236,72,153,.13),transparent 60%);
+  background-repeat:no-repeat}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+.back{display:inline-flex;gap:6px;margin-bottom:14px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:600}
+.back:hover{color:var(--accent)}
+header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -6px var(--accent)}
+.logo svg{width:26px;height:26px}
+h1{margin:0;font-size:1.75rem;letter-spacing:-.02em;line-height:1.2}
+p.sub{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);
+  border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.side{position:sticky;top:16px;margin-bottom:0;max-height:calc(100vh - 32px);overflow:auto}
+h2{margin:0 0 12px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sec+.sec{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+label{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+label span{color:var(--fg);font-variant-numeric:tabular-nums}
+select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);color:var(--fg);
+  font:inherit;outline:none}
+select:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;margin:10px 0 14px;
+  background:color-mix(in srgb,var(--accent) 25%,var(--border));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;
+  border:4px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:4px solid var(--accent);cursor:pointer}
+input[type=color]{width:38px;height:34px;border:1px solid var(--border);border-radius:10px;background:var(--field);padding:3px;cursor:pointer}
+button{font:inherit;font-weight:600;font-size:.88rem;padding:8px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--field);color:var(--fg);cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(15,23,42,.3)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -8px var(--accent)}
+button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.swatches{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sw{width:26px;height:26px;border-radius:50%;padding:0;border:2px solid var(--border)}
+.stagewrap{display:flex;justify-content:center}
+canvas#stage{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;
+  box-shadow:0 10px 30px -12px rgba(15,23,42,.35)}
+.cellbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding:10px;border-radius:14px;
+  background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent)}
+.cellbar button{padding:6px 11px;font-size:.82rem}
+.cellbar .z{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);margin-left:auto}
+.cellbar .z input{width:110px;margin:0}
+.hint{font-size:.82rem;color:var(--muted);margin-top:12px}
+.note{margin-top:10px;padding:9px 12px;border-radius:12px;font-size:.84rem;color:var(--ok);
+  background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.note.err{color:var(--err);background:color-mix(in srgb,var(--err) 10%,transparent)}
+.trayhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.trayhead h2{margin:0}
+.tray{display:flex;gap:10px;flex-wrap:wrap;min-height:20px}
+.thumb{position:relative;width:64px;height:64px;border-radius:12px;overflow:hidden;border:1px solid var(--border);cursor:grab}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.thumb .x{position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;border-radius:50%;font-size:.7rem;line-height:1;
+  background:rgba(15,23,42,.7);color:#fff;border:0;opacity:0;transition:opacity .15s}
+.thumb:hover .x{opacity:1}
+.thumb .used{position:absolute;left:5px;bottom:5px;width:9px;height:9px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 2px #fff}
+.empty{color:var(--muted);font-size:.86rem}
+
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cat{padding:5px 11px;font-size:.78rem;border-radius:99px;color:var(--muted)}
+.cat[aria-pressed=true]{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:400px;overflow:auto;padding:3px}
+.tcard{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 4px 7px;border-radius:12px;line-height:1.2}
+.tcard .tc{height:84px;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tcard canvas{max-width:100%;max-height:84px;width:auto;height:auto;border-radius:5px;box-shadow:0 2px 8px rgba(15,23,42,.18)}
+.tcard span{font-size:.7rem;font-weight:600;color:var(--muted);text-align:center}
+.tcard[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+.tcard[aria-pressed=true] span{color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);color:var(--fg);font:inherit;outline:none}
+input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+@media (max-width:900px){.workspace{grid-template-columns:1fr}.side{position:static}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="../../assets/theme.css">
+</head>
+<body>
+<main>
+  <nav class="topbar">
+    <a class="brand" href="../../index.html"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <a class="back" href="../../index.html">← All tools</a>
+  </nav>
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></svg></div>
+    <div><h1>Collage Maker</h1><p class="sub">Pick a template, drop in your photos, then fine-tune the layout, frames and typography.</p></div>
+  </header>
+
+  <div class="workspace">
+    <section>
+      <div class="card">
+        <div class="stagewrap"><canvas id="stage" aria-label="Collage canvas"></canvas></div>
+        <div class="cellbar" id="cellbar" hidden>
+          <button id="bReplace">Replace photo</button>
+          <button id="bRemove">Remove photo</button>
+          <button id="bSwap" title="Click this, then click another cell">Swap</button>
+          <button id="bSplitV" title="Add a cell beside this one">Split ↔</button>
+          <button id="bSplitH" title="Add a cell below this one">Split ↕</button>
+          <button id="bDelete" title="Remove this cell from the layout">Delete cell</button>
+          <span class="z"><span>Zoom</span><input id="zoom" type="range" min="100" max="500" value="100" aria-label="Zoom photo"><button id="bReset">Reset</button></span>
+        </div>
+        <div class="hint" id="hint">Drop photos onto the collage or click an empty cell. Drag a photo to reposition it, scroll to zoom, and drag the handles between cells to resize them.</div>
+        <div class="note" id="note" hidden></div>
+      </div>
+
+      <div class="card">
+        <div class="trayhead">
+          <h2 id="trayTitle">Photos</h2>
+          <div class="row"><button id="bShuffle">Shuffle</button><button class="primary" id="bAdd">Add photos</button></div>
+        </div>
+        <div class="tray" id="tray"></div>
+      </div>
+    </section>
+
+    <aside class="card side">
+      <div class="sec"><h2>Templates</h2><div class="cats" id="cats"></div><div class="tgrid" id="tgrid"></div></div>
+
+      <div class="sec">
+        <h2>Canvas</h2>
+        <label for="aspect">Shape</label>
+        <select id="aspect">
+          <option value="1">Square 1:1</option>
+          <option value="0.8">Portrait 4:5</option><option value="1.3333">Landscape 4:3</option>
+          <option value="0.75">Portrait 3:4</option><option value="1.5">Landscape 3:2</option>
+          <option value="0.6667">Portrait 2:3</option><option value="1.7778">Wide 16:9</option>
+          <option value="0.5625">Story 9:16</option>
+        </select>
+        <div style="height:14px"></div>
+        <label for="shape">Photo shape</label>
+        <select id="shape" style="margin-bottom:14px"><option value="rect">Rounded rectangle</option><option value="circle">Circle</option><option value="arch">Arch</option><option value="heart">Heart ❤</option></select>
+        <label for="frame">Photo frame</label>
+        <select id="frame" style="margin-bottom:14px"><option value="none">None</option><option value="mat">White mat</option><option value="polaroid">Polaroid</option></select>
+        <label for="tilt">Tilt <span id="tiltv">0°</span></label><input id="tilt" type="range" min="0" max="6" step="0.5" value="0">
+        <label for="gap">Spacing <span id="gapv">12</span></label><input id="gap" type="range" min="0" max="60" value="12">
+        <label for="pad">Border <span id="padv">16</span></label><input id="pad" type="range" min="0" max="80" value="16">
+        <label for="rad">Rounded corners <span id="radv">12</span></label><input id="rad" type="range" min="0" max="80" value="12">
+        <label>Background</label>
+        <div class="swatches" id="swatches"><input type="color" id="bg" value="#ffffff" aria-label="Background colour"></div>
+      </div>
+
+      <div class="sec">
+        <h2>Title text</h2>
+        <input type="text" id="ttext" placeholder="Main title, e.g. Anna &amp; James" maxlength="60" aria-label="Title text">
+        <input type="text" id="tsub" placeholder="Small caption (optional)" maxlength="60" aria-label="Caption" style="margin-top:8px">
+        <div class="two" style="margin-top:10px">
+          <select id="tfont" aria-label="Font"><option value="elegant">Elegant serif</option><option value="italic">Serif italic</option><option value="modern">Modern light</option><option value="bold">Bold sans</option><option value="script">Script</option></select>
+          <select id="tpos" aria-label="Position"><option value="top">At top</option><option value="bottom">At bottom</option></select>
+          <select id="talign" aria-label="Alignment"><option value="center">Centered</option><option value="left">Left aligned</option></select>
+          <label style="margin:0;align-items:center;justify-content:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="tcaps"> Uppercase</label>
+        </div>
+        <div class="row"><label for="tcolor" style="margin:0">Text colour</label><input type="color" id="tcolor" value="#111827"></div>
+      </div>
+
+      <div class="sec">
+        <h2>Export</h2>
+        <div class="row" style="margin-bottom:12px">
+          <select id="xfmt" style="flex:1"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+          <select id="xsize" style="flex:1"><option value="1">1000 px</option><option value="2" selected>2000 px</option><option value="3">3000 px</option></select>
+        </div>
+        <div id="xqWrap" hidden><label for="xq">Quality <span id="xqv">92</span></label><input id="xq" type="range" min="40" max="100" value="92"></div>
+        <button class="primary" id="bExport" style="width:100%;padding:11px">Download collage</button>
+      </div>
+    </aside>
+  </div>
+  <input type="file" id="fileAdd" accept="image/*" multiple hidden>
+  <input type="file" id="fileCell" accept="image/*" multiple hidden>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- layout tree: a leaf is a cell, a split divides its rectangle in two ---------- */
+const L = () => ({leaf:true, img:null, zoom:1, ox:0, oy:0});
+const V = (r, a, b) => ({leaf:false, dir:"v", ratio:r, a, b}); // vertical divider: a left, b right
+const H = (r, a, b) => ({leaf:false, dir:"h", ratio:r, a, b}); // horizontal divider: a top, b bottom
+const row3 = () => V(1/3, L(), V(.5, L(), L()));
+const col3 = () => H(1/3, L(), H(.5, L(), L()));
+const row4 = () => V(.25, L(), V(1/3, L(), V(.5, L(), L())));
+const col4 = () => H(.25, L(), H(1/3, L(), H(.5, L(), L())));
+
+/* ---------- typography ---------- */
+const FONTS = {
+  elegant: {w:"normal", s:"normal", f:"Georgia,'Times New Roman',serif"},
+  italic:  {w:"normal", s:"italic", f:"Georgia,'Times New Roman',serif"},
+  modern:  {w:"300",    s:"normal", f:"'Helvetica Neue','Segoe UI',Arial,sans-serif"},
+  bold:    {w:"800",    s:"normal", f:"'Segoe UI','Helvetica Neue',Arial,sans-serif"},
+  script:  {w:"normal", s:"normal", f:"'Brush Script MT','Segoe Script','Lucida Handwriting',cursive"},
+};
+const EMOJI = ",'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'";
+const fontStr = (key, size, weight) => { const f = FONTS[key]; return `${f.s} ${weight || f.w} ${size}px ${f.f}${EMOJI}`; };
+const HAS_LS = "letterSpacing" in CanvasRenderingContext2D.prototype;
+
+/* ---------- templates (muted palettes, generous margins, restrained type) ---------- */
+const T = (cat, name, make, o = {}) => ({cat, name, make, aspect:o.aspect, gap:o.gap ?? 12, pad:o.pad ?? 16,
+  radius:o.radius ?? 0, bg:o.bg ?? "#ffffff", shape:o.shape || "rect", frame:o.frame || "none", tilt:o.tilt ?? 0, title:o.title || null});
+const ti = (text, sub, font, color, pos = "top", extra = {}) => ({text, sub, font, color, pos, align:"center", caps:false, ...extra});
+
+const CLASSIC = [
+  ["Single", () => L()], ["Side by side", () => V(.5, L(), L())], ["Stacked", () => H(.5, L(), L())],
+  ["Three columns", row3], ["Three rows", col3], ["Big left, two right", () => V(.6, L(), H(.5, L(), L()))],
+  ["Big top, two below", () => H(.6, L(), V(.5, L(), L()))], ["2 × 2 grid", () => H(.5, V(.5, L(), L()), V(.5, L(), L()))],
+  ["Staggered four", () => H(.5, V(.62, L(), L()), V(.38, L(), L()))], ["Big left, three right", () => V(.6, L(), col3())],
+  ["Hero and three", () => H(.58, L(), row3())], ["Two over three", () => H(.5, V(.5, L(), L()), row3())],
+  ["3 × 2 grid", () => H(.5, row3(), row3())], ["3 × 3 grid", () => H(1/3, row3(), H(.5, row3(), row3()))],
+  ["Feature column", () => V(.38, col3(), V(.5, L(), col3()))],
+  ["Cross", () => H(.5, V(.5, L(), V(.5, L(), L())), V(.5, V(.5, L(), L()), L()))],
+].map(([n, m]) => T("Classic", n, m, {gap:12, pad:16, radius:12}));
+
+const grid22 = () => H(.5, V(.5, L(), L()), V(.5, L(), L()));
+const hero3 = (r = .6) => H(r, L(), row3());
+const bigL2 = (r = .6) => V(r, L(), H(.5, L(), L()));
+const stag4 = () => H(.5, V(.62, L(), L()), V(.38, L(), L()));
+const grid32 = () => H(.5, row3(), row3());
+const over23 = () => H(.5, V(.5, L(), L()), row3());
+const grid43 = () => H(1/3, row4(), H(.5, row4(), row4()));
+
+const THEMED = [
+  // Wedding
+  T("Wedding", "The Wedding", () => hero3(.62), {aspect:.8, bg:"#faf7f2", gap:10, pad:38,
+    title:ti("Anna & James","OUR WEDDING DAY","italic","#5b4636")}),
+  T("Wedding", "Arch Romance", row3, {aspect:1.5, bg:"#f3e3df", shape:"arch", gap:26, pad:46,
+    title:ti("Mr & Mrs","FOREVER STARTS TODAY","italic","#8c5a52","bottom")}),
+  T("Wedding", "Love Story", grid32, {aspect:1.5, bg:"#efe6da", frame:"polaroid", tilt:3, gap:30, pad:44,
+    title:ti("Our Love Story","EST. 2019","script","#7d6240","bottom")}),
+  T("Wedding", "Golden Hour", over23, {aspect:1, bg:["#14213d","#1b2b4d"], gap:12, pad:40,
+    title:ti("Golden Moments","THE WEDDING","elegant","#cdb07a")}),
+  // Anniversary
+  T("Anniversary", "Twenty-Five Years", () => bigL2(.6), {aspect:1.3333, bg:"#1c1c1c", gap:12, pad:38,
+    title:ti("Twenty-Five Years","OF LOVE & LAUGHTER","italic","#e6d5b0","bottom",{align:"left"})}),
+  T("Anniversary", "Blush Hearts", row3, {aspect:1.5, bg:"#fbeceb", shape:"heart", gap:12, pad:20,
+    title:ti("Forever & Always","HAPPY ANNIVERSARY","italic","#a24b53","bottom")}),
+  T("Anniversary", "Memory Lane", stag4, {aspect:1, bg:"#efe6da", frame:"mat", tilt:2, gap:32, pad:46,
+    title:ti("Memory Lane","OUR ANNIVERSARY","elegant","#6b4f3a")}),
+  T("Anniversary", "Together Since", () => hero3(.6), {aspect:.8, bg:"#e7eee4", gap:12, pad:36,
+    title:ti("Together Since 2015","EVERY DAY WITH YOU","elegant","#3d5a45")}),
+  // Birthday
+  T("Birthday", "Birthday Editorial", () => bigL2(.58), {aspect:1.25, bg:"#f4eee4", gap:14, pad:40,
+    title:ti("HAPPY BIRTHDAY","A YEAR TO REMEMBER","modern","#1f2937","top",{align:"left", caps:true})}),
+  T("Birthday", "Cheers", hero3, {aspect:1, bg:["#1f1d36","#3a3150"], gap:12, pad:38,
+    title:ti("Cheers to You","HAPPY BIRTHDAY","italic","#e3c887")}),
+  T("Birthday", "Sun Trips", grid32, {aspect:1.5, bg:"#f2e6d8", frame:"polaroid", tilt:3, gap:30, pad:42,
+    title:ti("Another Trip Around the Sun","HAPPY BIRTHDAY","italic","#5c4330","bottom")}),
+  T("Birthday", "Soft Circles", row3, {aspect:1.5, bg:"#f3e3df", shape:"circle", gap:22, pad:36,
+    title:ti("HAPPY BIRTHDAY","MAKE A WISH","modern","#7a4b4b","top",{caps:true})}),
+  // Baby
+  T("Baby", "Hello Little One", row3, {aspect:1.3333, bg:"#e9eef0", shape:"arch", gap:24, pad:44,
+    title:ti("Hello, Little One","WELCOME TO THE WORLD","italic","#4a5f6b","bottom")}),
+  T("Baby", "Year One", grid43, {aspect:1.3333, bg:"#faf7f2", gap:10, pad:34, radius:6,
+    title:ti("YEAR ONE","MONTH BY MONTH","modern","#5f5648","top",{caps:true})}),
+  T("Baby", "Sweet Moments", grid22, {aspect:1, bg:"#f1e9e1", frame:"polaroid", tilt:2, gap:34, pad:46,
+    title:ti("Sweet Little Moments","BABY'S FIRST YEAR","script","#8a6a55","bottom")}),
+  // Family
+  T("Family", "Family Album", () => V(.6, L(), col3()), {aspect:1.3333, bg:"#ece6dc", frame:"mat", tilt:1.5, gap:24, pad:44,
+    title:ti("Our Family","THE FAMILY ALBUM","italic","#4d3f33","bottom")}),
+  T("Family", "Family Gallery", () => hero3(.6), {aspect:1, bg:"#1f2a24", gap:12, pad:38,
+    title:ti("FAMILY","COLLECTED MOMENTS","modern","#e8e2d0","top",{caps:true})}),
+  T("Family", "Generations", row4, {aspect:1.7778, bg:"#efe9e0", shape:"arch", gap:20, pad:40,
+    title:ti("Generations","LOVE THAT GROWS","italic","#5a4a3c","bottom")}),
+  // Friends
+  T("Friends", "Best Friends", grid22, {aspect:1, bg:"#e8e3ee", frame:"mat", tilt:2, gap:34, pad:46,
+    title:ti("Best Friends","MEMORIES TOGETHER","italic","#4a3f5c","bottom")}),
+  T("Friends", "Photo Booth", col4, {aspect:.5625, bg:"#1b1b1b", frame:"mat", gap:14, pad:34,
+    title:ti("PHOTO BOOTH","FRIENDS FOREVER","modern","#f4f1ea","bottom",{caps:true})}),
+  T("Friends", "Weekend Mood", stag4, {aspect:1, bg:["#232526","#414345"], gap:12, pad:34,
+    title:ti("WEEKEND MOOD","GOOD PEOPLE · GOOD TIMES","bold","#f5f5f5","top",{caps:true})}),
+  // Travel
+  T("Travel", "Wanderlust", () => bigL2(.64), {aspect:1.3333, bg:"#12263a", gap:12, pad:38,
+    title:ti("WANDERLUST","TRAVEL JOURNAL · 2026","modern","#f2e8d5","top",{align:"left", caps:true})}),
+  T("Travel", "Postcard", () => hero3(.62), {aspect:1.3333, bg:"#f6efe2", frame:"mat", gap:22, pad:40,
+    title:ti("Greetings from Lisbon","POSTCARD FROM THE ROAD","italic","#8b3a2f")}),
+  T("Travel", "Polaroid Journey", grid32, {aspect:1.5, bg:"#e6dfd2", frame:"polaroid", tilt:3, gap:30, pad:42,
+    title:ti("Road Trip Diary","SUMMER ADVENTURES","script","#5e4b36","bottom")}),
+  // Graduation
+  T("Graduation", "Class of 2026", () => hero3(.6), {aspect:1, bg:"#14213d", gap:10, pad:38,
+    title:ti("Class of 2026","CONGRATULATIONS GRADUATE","elegant","#d4b36f")}),
+  T("Graduation", "Proud Moments", () => bigL2(.6), {aspect:1.3333, bg:"#f5f0e6", frame:"mat", gap:24, pad:44,
+    title:ti("Proud Graduate","THE FUTURE IS BRIGHT","italic","#1f2a44","bottom")}),
+  // Festive
+  T("Festive", "Diwali Lights", () => hero3(.58), {aspect:1, bg:["#3b0d0d","#5e1818"], gap:12, pad:38, radius:4,
+    title:ti("Happy Diwali","FESTIVAL OF LIGHTS","italic","#e6b655")}),
+  T("Festive", "Season's Greetings", grid22, {aspect:1, bg:"#1f3d2f", frame:"mat", tilt:1.5, gap:30, pad:44,
+    title:ti("Season's Greetings","WITH LOVE","italic","#f3ead7")}),
+  T("Festive", "New Year", over23, {aspect:1, bg:["#0b0b0f","#1d1b2b"], gap:12, pad:38,
+    title:ti("Hello 2027","NEW YEAR · NEW MEMORIES","elegant","#d9bd7e")}),
+  // Editorial
+  T("Editorial", "Magazine Cover", () => H(.7, L(), row3()), {aspect:.75, bg:"#ffffff", gap:10, pad:34,
+    title:ti("THE EDIT","VOL. 01 · PHOTO STORIES","bold","#111111","top",{align:"left", caps:true})}),
+  T("Editorial", "Asymmetric", () => V(.34, H(.6, L(), L()), V(.56, L(), H(.42, L(), L()))), {aspect:1.3333, bg:"#f1eee8", gap:12, pad:36,
+    title:ti("MOMENTS","A PHOTO STORY","modern","#2a2a2a","bottom",{align:"left", caps:true})}),
+  T("Editorial", "Clean Gallery", row3, {aspect:1.7778, bg:"#ffffff", gap:26, pad:64,
+    title:ti("Selected Work","2026","elegant","#222222","bottom")}),
+  T("Editorial", "Moodboard", () => H(.5, V(.4, L(), V(.5, L(), L())), V(.3, L(), V(.5, L(), L()))), {aspect:1.3333, bg:"#e6e1d8", gap:10, pad:28, radius:3,
+    title:ti("MOODBOARD","SPRING / SUMMER","modern","#3b362f","top",{align:"left", caps:true})}),
+];
+const TEMPLATES = [...THEMED, ...CLASSIC];
+const CATS = ["All", "Wedding", "Anniversary", "Birthday", "Baby", "Family", "Friends", "Travel", "Graduation", "Festive", "Editorial", "Classic"];
+
+const MAX_CELLS = 16, MAX_IMAGES = 40, MAX_DIM = 4096, MAX_FILE_MB = 30;
+const stage = {W:1000, H:1000};
+const opt = {gap:12, pad:16, radius:0, bg:"#ffffff", shape:"rect", frame:"none", tilt:0};
+const title = {text:"", sub:"", font:"elegant", color:"#111827", pos:"top", align:"center", caps:false};
+const images = [];                      // {id,name,bmp,w,h,thumb}
+let imgSeq = 0, tree = L(), activeTpl = null, curCat = "Wedding";
+let selected = null, swapMode = false, hoverDiv = null, hoverLeaf = null, dropLeaf = null, drag = null;
+let cache = {cells:[], divs:[]};
+const currentScene = () => ({W:stage.W, H:stage.H, tree, opt, title});
+
+function leaves(n, out = []){ if (n.leaf) out.push(n); else { leaves(n.a, out); leaves(n.b, out); } return out; }
+function findParent(n, t){ if (n.leaf) return null; if (n.a === t || n.b === t) return n; return findParent(n.a, t) || findParent(n.b, t); }
+function replaceNode(n, t, rep){ if (n === t) return rep; if (n.leaf) return n; n.a = replaceNode(n.a, t, rep); n.b = replaceNode(n.b, t, rep); return n; }
+
+/* Zero-gap geometry: dividers sit on exact ratios, so equal splits stay equal whatever the spacing. */
+function walk(n, r, cells, divs){
+  if (n.leaf){ cells.push({leaf:n, r}); return; }
+  if (n.dir === "v"){
+    const x = r.x + r.w*n.ratio; divs.push({node:n, r, dir:"v", pos:x});
+    walk(n.a, {x:r.x, y:r.y, w:x-r.x, h:r.h}, cells, divs);
+    walk(n.b, {x, y:r.y, w:r.x+r.w-x, h:r.h}, cells, divs);
+  } else {
+    const y = r.y + r.h*n.ratio; divs.push({node:n, r, dir:"h", pos:y});
+    walk(n.a, {x:r.x, y:r.y, w:r.w, h:y-r.y}, cells, divs);
+    walk(n.b, {x:r.x, y, w:r.w, h:r.y+r.h-y}, cells, divs);
+  }
+}
+
+/* Title block: a main line plus an optional small tracked-out caption line. */
+const measureCtx = document.createElement("canvas").getContext("2d");
+const mainText = t => t.caps ? t.text.toUpperCase() : t.text;
+function titleInfo(sc){
+  const t = sc.title; if (!t || !t.text.trim()) return null;
+  const maxW = sc.W*0.84;
+  measureCtx.font = fontStr(t.font, 100); if (HAS_LS) measureCtx.letterSpacing = t.caps ? "12px" : "0px";
+  const fs = Math.min(Math.min(sc.W, sc.H)*0.085, 100*maxW/Math.max(1, measureCtx.measureText(mainText(t)).width));
+  let sfs = 0;
+  if (t.sub && t.sub.trim()){
+    measureCtx.font = fontStr("modern", 100, "400"); if (HAS_LS) measureCtx.letterSpacing = "22px";
+    sfs = Math.min(fs*0.36, 100*maxW/Math.max(1, measureCtx.measureText(t.sub.toUpperCase()).width));
+  }
+  return {fs, sfs, band: sfs ? fs*1.4 + sfs*2.1 : fs*1.7};
+}
+function computeLayout(sc){
+  const {W, H, opt:o} = sc, g = o.gap, p = o.pad, tinfo = titleInfo(sc), band = tinfo ? tinfo.band : 0;
+  const top = tinfo && sc.title.pos === "top" ? band : 0, cells = [], divs = [];
+  walk(sc.tree, {x:p-g/2, y:p+top-g/2, w:W-2*p+g, h:H-2*p-band+g}, cells, divs);
+  for (const c of cells){
+    c.cell = {x:c.r.x+g/2, y:c.r.y+g/2, w:Math.max(4,c.r.w-g), h:Math.max(4,c.r.h-g)};
+    if (o.shape === "circle" || o.shape === "heart"){
+      const side = Math.min(c.cell.w, c.cell.h);
+      c.box = {x:c.cell.x+(c.cell.w-side)/2, y:c.cell.y+(c.cell.h-side)/2, w:side, h:side};
+    } else c.box = c.cell;
+    c.framed = o.frame !== "none" && o.shape === "rect";
+    if (c.framed){                        // white mat / polaroid border around the photo
+      const t = clamp(Math.min(c.box.w, c.box.h)*0.045, 5, 26), bot = o.frame === "polaroid" ? t*3.6 : t;
+      c.photo = {x:c.box.x+t, y:c.box.y+t, w:Math.max(4, c.box.w-2*t), h:Math.max(4, c.box.h-t-bot)};
+    } else c.photo = c.box;
+  }
+  return {cells, divs, tinfo};
+}
+
+/* ---------- drawing ---------- */
+function rr(ctx, x, y, w, h, r){
+  r = Math.max(0, Math.min(r, w/2, h/2));
+  ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
+}
+function heartPath(ctx, b){
+  const X = v => b.x + b.w*v, Y = v => b.y + b.h*v;
+  ctx.beginPath(); ctx.moveTo(X(.5), Y(.28));
+  ctx.bezierCurveTo(X(.5), Y(.12), X(.38), Y(0), X(.25), Y(0));
+  ctx.bezierCurveTo(X(.1), Y(0), X(0), Y(.12), X(0), Y(.3));
+  ctx.bezierCurveTo(X(0), Y(.55), X(.3), Y(.7), X(.5), Y(1));
+  ctx.bezierCurveTo(X(.7), Y(.7), X(1), Y(.55), X(1), Y(.3));
+  ctx.bezierCurveTo(X(1), Y(.12), X(.9), Y(0), X(.75), Y(0));
+  ctx.bezierCurveTo(X(.62), Y(0), X(.5), Y(.12), X(.5), Y(.28));
+  ctx.closePath();
+}
+function shapePath(ctx, shape, b, radius){
+  if (shape === "circle"){ ctx.beginPath(); ctx.arc(b.x+b.w/2, b.y+b.h/2, b.w/2, 0, Math.PI*2); }
+  else if (shape === "heart") heartPath(ctx, b);
+  else if (shape === "arch"){
+    const r = Math.min(b.w/2, b.h); ctx.beginPath(); ctx.moveTo(b.x, b.y+b.h); ctx.lineTo(b.x, b.y+r);
+    ctx.arc(b.x+b.w/2, b.y+r, b.w/2, Math.PI, 0); ctx.lineTo(b.x+b.w, b.y+b.h); ctx.closePath();
+  } else rr(ctx, b.x, b.y, b.w, b.h, radius);
+}
+function fillBg(ctx, bg, W, H){
+  if (Array.isArray(bg)){ const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]); ctx.fillStyle = g; }
+  else ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+}
+function limits(leaf, r){
+  const im = leaf.img, sc = Math.max(r.w/im.w, r.h/im.h)*leaf.zoom;
+  return {mx:Math.max(0,(im.w*sc-r.w)/2), my:Math.max(0,(im.h*sc-r.h)/2), sc};
+}
+function drawPhoto(ctx, leaf, r){
+  const {mx, my, sc} = limits(leaf, r), dw = leaf.img.w*sc, dh = leaf.img.h*sc;
+  const ox = clamp(leaf.ox*r.w, -mx, mx), oy = clamp(leaf.oy*r.h, -my, my);
+  ctx.drawImage(leaf.img.bmp, r.x+(r.w-dw)/2+ox, r.y+(r.h-dh)/2+oy, dw, dh);
+}
+const MOCK = [["#c9b8a6","#8c7765"],["#a9b8b0","#5f766a"],["#d8c3b3","#a47e6a"],["#b4bdc9","#6c7d93"],["#d9cdb8","#a99870"],["#c7b1b1","#8d6b6b"]];
+function drawMock(ctx, b, i){          // neutral stand-in "photo" for template thumbnails
+  const [c1, c2] = MOCK[i % MOCK.length], g = ctx.createLinearGradient(b.x, b.y, b.x+b.w, b.y+b.h);
+  g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(b.x, b.y, b.w, b.h);
+  ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.beginPath();
+  ctx.arc(b.x+b.w*.7, b.y+b.h*.3, Math.min(b.w, b.h)*.1, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.28)"; ctx.beginPath(); ctx.moveTo(b.x, b.y+b.h);
+  for (const [px, py] of [[.35,.58],[.6,.8],[.8,.62],[1,.86],[1,1]]) ctx.lineTo(b.x+b.w*px, b.y+b.h*py);
+  ctx.closePath(); ctx.fill();
+}
+const TILTS = [-1, .7, -.5, 1, -.8, .6, -.4, .9];
+
+function drawScene(ctx, s, preview, sc){
+  ctx.save(); ctx.scale(s, s); ctx.imageSmoothingQuality = "high";
+  fillBg(ctx, sc.opt.bg, sc.W, sc.H);
+  const lay = computeLayout(sc), o = sc.opt;
+  const css = getComputedStyle(document.documentElement);
+  const accent = css.getPropertyValue("--accent").trim() || "#6366f1", muted = css.getPropertyValue("--muted").trim() || "#64748b";
+  const k = preview ? sc.W / ($("stage").getBoundingClientRect().width || sc.W) : 1;
+  lay.cells.forEach((c, i) => {
+    const b = c.box, ph = c.photo, leaf = c.leaf;
+    ctx.save();
+    if (o.tilt){ const a = o.tilt*TILTS[i % TILTS.length]*Math.PI/180, cx = b.x+b.w/2, cy = b.y+b.h/2;
+      ctx.translate(cx, cy); ctx.rotate(a); ctx.translate(-cx, -cy); }
+    if (c.framed){
+      ctx.save(); ctx.shadowColor = "rgba(0,0,0,.28)"; ctx.shadowBlur = 18*s; ctx.shadowOffsetY = 5*s;
+      ctx.fillStyle = "#fff"; rr(ctx, b.x, b.y, b.w, b.h, Math.min(o.radius, 8)); ctx.fill(); ctx.restore();
+    }
+    ctx.save(); if (c.framed){ ctx.beginPath(); ctx.rect(ph.x, ph.y, ph.w, ph.h); } else shapePath(ctx, o.shape, ph, o.radius);
+    ctx.clip();
+    if (leaf.img) drawPhoto(ctx, leaf, ph);
+    else if (sc.mock) drawMock(ctx, ph, i);
+    else if (preview){
+      ctx.fillStyle = muted + "26"; ctx.fillRect(ph.x, ph.y, ph.w, ph.h);
+      const cx = ph.x+ph.w/2, cy = ph.y+ph.h/2;
+      ctx.strokeStyle = muted + "aa"; ctx.lineWidth = 2*k; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(cx-10*k, cy); ctx.lineTo(cx+10*k, cy); ctx.moveTo(cx, cy-10*k); ctx.lineTo(cx, cy+10*k); ctx.stroke();
+      if (ph.w > 120*k && ph.h > 70*k && o.shape === "rect"){ ctx.fillStyle = muted; ctx.font = `${13*k}px system-ui,sans-serif`;
+        ctx.textAlign = "center"; ctx.fillText("Drop or click", cx, cy+30*k); }
+    }
+    ctx.restore();
+    ctx.restore();
+    if (preview){
+      if (!leaf.img && !c.framed){ ctx.save(); ctx.setLineDash([6*k, 5*k]); ctx.lineWidth = 1.5*k; ctx.strokeStyle = muted + "88";
+        shapePath(ctx, o.shape, b, o.radius); ctx.stroke(); ctx.restore(); }
+      if (leaf === dropLeaf || (swapMode && leaf === hoverLeaf && leaf !== selected)){
+        ctx.save(); ctx.fillStyle = accent + "33"; shapePath(ctx, o.shape, b, o.radius); ctx.fill();
+        ctx.lineWidth = 3*k; ctx.strokeStyle = accent; ctx.stroke(); ctx.restore(); }
+      if (leaf === selected){ ctx.save(); ctx.lineWidth = 3*k; ctx.strokeStyle = accent;
+        if (swapMode) ctx.setLineDash([8*k, 5*k]);
+        shapePath(ctx, o.shape, b, o.radius); ctx.stroke(); ctx.restore(); }
+    }
+  });
+  const ti = lay.tinfo;
+  if (ti){
+    const t = sc.title, left = t.align === "left", x = left ? o.pad : sc.W/2, y0 = t.pos === "top" ? o.pad : sc.H - o.pad - ti.band;
+    ctx.save(); ctx.textAlign = left ? "left" : "center"; ctx.textBaseline = "middle"; ctx.fillStyle = t.color;
+    ctx.font = fontStr(t.font, ti.fs); if (HAS_LS) ctx.letterSpacing = t.caps ? ti.fs*0.12 + "px" : "0px";
+    ctx.fillText(mainText(t), x, y0 + ti.fs*0.85);
+    if (ti.sfs){
+      ctx.globalAlpha = .78; ctx.font = fontStr("modern", ti.sfs, "400"); if (HAS_LS) ctx.letterSpacing = ti.sfs*0.22 + "px";
+      ctx.fillText(t.sub.toUpperCase(), x, y0 + ti.fs*1.4 + ti.sfs*0.8);
+    }
+    ctx.restore();
+  }
+  if (preview){
+    for (const d of lay.divs){
+      const span = d.dir === "v" ? d.r.h : d.r.w;
+      if (span < 50*k) continue;
+      const active = hoverDiv === d.node || (drag && drag.type === "div" && drag.d.node === d.node);
+      const cx = d.dir === "v" ? d.pos : d.r.x + d.r.w/2, cy = d.dir === "v" ? d.r.y + d.r.h/2 : d.pos;
+      const long = (active ? 40 : 28)*k, short = (active ? 9 : 7)*k;
+      const w = d.dir === "v" ? short : long, h = d.dir === "v" ? long : short;
+      ctx.save(); ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = 8*s; ctx.fillStyle = "#fff";
+      rr(ctx, cx-w/2, cy-h/2, w, h, short/2); ctx.fill(); ctx.shadowColor = "transparent";
+      ctx.lineWidth = (active ? 2 : 1)*k; ctx.strokeStyle = accent; ctx.stroke(); ctx.restore();
+    }
+    cache = lay;
+  }
+  ctx.restore();
+}
+
+let raf = 0;
+function requestDraw(){ if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(); }); }
+function paint(){
+  const cv = $("stage"), pxr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.round(stage.W*pxr), h = Math.round(stage.H*pxr);
+  if (cv.width !== w || cv.height !== h){ cv.width = w; cv.height = h; }
+  const ctx = cv.getContext("2d"); ctx.setTransform(1,0,0,1,0,0);
+  drawScene(ctx, pxr, true, currentScene());
+}
+function setStageShape(ratio){
+  if (ratio >= 1){ stage.W = 1000; stage.H = Math.round(1000/ratio); } else { stage.H = 1000; stage.W = Math.round(1000*ratio); }
+  $("stage").style.width = `min(100%, ${(70*stage.W/stage.H).toFixed(1)}vh)`;
+  requestDraw();
+}
+function selectAspect(r){
+  const sel = $("aspect"); let best = sel.options[0];
+  for (const op of sel.options) if (Math.abs(+op.value - r) < Math.abs(+best.value - r)) best = op;
+  sel.value = best.value; setStageShape(+best.value);
+}
+
+/* ---------- images ---------- */
+async function loadImage(file){
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch { bmp = await new Promise((res, rej) => { const u = URL.createObjectURL(file), i = new Image();
+    i.onload = () => res(i); i.onerror = rej; i.src = u; }); }
+  let w = bmp.width || bmp.naturalWidth || 512, h = bmp.height || bmp.naturalHeight || 512;
+  const m = Math.max(w, h);
+  if (m > MAX_DIM){
+    const f = MAX_DIM/m, c = document.createElement("canvas"); c.width = Math.round(w*f); c.height = Math.round(h*f);
+    const x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(bmp, 0, 0, c.width, c.height);
+    if (bmp.close) bmp.close(); bmp = c; w = c.width; h = c.height;
+  }
+  const t = document.createElement("canvas"); t.width = t.height = 128;
+  const tx = t.getContext("2d"), sc = Math.max(128/w, 128/h);
+  tx.drawImage(bmp, (128-w*sc)/2, (128-h*sc)/2, w*sc, h*sc);
+  return {id:++imgSeq, name:file.name, bmp, w, h, thumb:t.toDataURL("image/jpeg", .8)};
+}
+
+function note(text, isErr){
+  const n = $("note"); n.hidden = !text; n.textContent = text || ""; n.classList.toggle("err", !!isErr);
+}
+const usedIn = im => leaves(tree).some(l => l.img === im);
+function emptyLeaves(){ return leaves(tree).filter(l => !l.img); }
+
+function placeLoaded(list, target){
+  for (const im of list) images.push(im);
+  const order = target ? [target, ...emptyLeaves().filter(l => l !== target)] : emptyLeaves();
+  list.forEach((im, i) => { const l = order[i]; if (l){ l.img = im; l.zoom = 1; l.ox = l.oy = 0; } });
+  const left = list.length - Math.min(list.length, order.length);
+  note(left ? `${left} photo${left > 1 ? "s were" : " was"} added to the tray but there were no empty cells. Pick a layout with more cells or split a cell.` : "");
+  renderTray(); syncBar(); requestDraw();
+}
+
+async function addFiles(files, target){
+  const list = []; let skipped = 0;
+  for (const f of files){
+    if (!f.type.startsWith("image/")) continue;
+    if (f.size > MAX_FILE_MB*1048576 || images.length + list.length >= MAX_IMAGES){ skipped++; continue; }
+    try { list.push(await loadImage(f)); } catch { skipped++; }
+  }
+  if (list.length) placeLoaded(list, target);
+  if (skipped) note(`${skipped} file${skipped > 1 ? "s were" : " was"} skipped (not a readable image, over ${MAX_FILE_MB} MB, or more than ${MAX_IMAGES} photos).`, true);
+}
+
+function placeImage(im, leaf){
+  leaf = leaf || selected || emptyLeaves()[0];
+  if (!leaf){ note("No empty cell. Select a cell to replace its photo, or split a cell first.", true); return; }
+  leaf.img = im; leaf.zoom = 1; leaf.ox = leaf.oy = 0; note("");
+  renderTray(); syncBar(); requestDraw();
+}
+
+function renderTray(){
+  const tray = $("tray"); tray.replaceChildren();
+  $("trayTitle").textContent = `Photos (${images.length})`;
+  $("bShuffle").disabled = leaves(tree).filter(l => l.img).length < 2;
+  if (!images.length){ const e = document.createElement("div"); e.className = "empty";
+    e.textContent = "No photos yet. Use “Add photos” or drop files onto the collage."; tray.append(e); return; }
+  for (const im of images){
+    const d = document.createElement("div"); d.className = "thumb"; d.draggable = true; d.title = im.name + " (click to place, drag onto a cell)";
+    d.innerHTML = `<img alt="">`; d.querySelector("img").src = im.thumb;
+    if (usedIn(im)) d.insertAdjacentHTML("beforeend", `<i class="used" title="In use"></i>`);
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "✕"; x.title = "Remove from tray";
+    x.onclick = e => { e.stopPropagation(); images.splice(images.indexOf(im), 1);
+      leaves(tree).forEach(l => { if (l.img === im) l.img = null; }); if (im.bmp.close) im.bmp.close();
+      renderTray(); syncBar(); requestDraw(); };
+    d.append(x);
+    d.onclick = () => placeImage(im);
+    d.addEventListener("dragstart", e => { e.dataTransfer.setData("text/x-collage-img", String(im.id)); e.dataTransfer.effectAllowed = "copy"; });
+    tray.append(d);
+  }
+}
+
+/* ---------- templates and layout editing ---------- */
+function syncControls(){
+  for (const [id, v, out] of [["gap", opt.gap, "gapv"], ["pad", opt.pad, "padv"], ["rad", opt.radius, "radv"]]){ $(id).value = v; $(out).textContent = v; }
+  $("shape").value = opt.shape; $("bg").value = Array.isArray(opt.bg) ? opt.bg[0] : opt.bg;
+  $("frame").value = opt.frame; $("tilt").value = opt.tilt; $("tiltv").textContent = opt.tilt + "°";
+  $("ttext").value = title.text; $("tsub").value = title.sub; $("tfont").value = title.font; $("tcolor").value = title.color;
+  $("tpos").value = title.pos; $("talign").value = title.align; $("tcaps").checked = title.caps;
+}
+function applyTemplate(t){
+  const old = leaves(tree).filter(l => l.img).map(l => l.img);
+  tree = t.make(); activeTpl = t; selected = null; swapMode = false;
+  const ls = leaves(tree);
+  old.forEach((im, k) => { if (ls[k]) ls[k].img = im; });
+  for (const l of ls) if (!l.img){ const free = images.find(im => !usedIn(im)); if (free) l.img = free; }
+  Object.assign(opt, {gap:t.gap, pad:t.pad, radius:t.radius, bg:t.bg, shape:t.shape, frame:t.frame, tilt:t.tilt});
+  Object.assign(title, {text:"", sub:"", align:"center", caps:false}, t.title || {});
+  if (t.aspect) selectAspect(t.aspect);
+  syncControls(); note(""); markActive(); renderTray(); syncBar(); requestDraw();
+}
+function thumbCanvas(t){
+  const ratio = t.aspect || 1, W = ratio >= 1 ? 1000 : Math.round(1000*ratio), Hh = ratio >= 1 ? Math.round(1000/ratio) : 1000;
+  const px = 240, s = px/1000, c = document.createElement("canvas");
+  c.width = Math.round(W*s); c.height = Math.round(Hh*s);
+  drawScene(c.getContext("2d"), s, false, {W, H:Hh, tree:t.make(), mock:true,
+    opt:{gap:t.gap, pad:t.pad, radius:t.radius, bg:t.bg, shape:t.shape, frame:t.frame, tilt:t.tilt}, title:t.title});
+  return c;
+}
+function renderTemplates(){
+  const cats = $("cats"); cats.replaceChildren();
+  for (const name of CATS){
+    const b = document.createElement("button"); b.className = "cat"; b.textContent = name; b.setAttribute("aria-pressed", name === curCat);
+    b.onclick = () => { curCat = name; renderTemplates(); }; cats.append(b);
+  }
+  const grid = $("tgrid"); grid.replaceChildren();
+  for (const t of TEMPLATES.filter(t => curCat === "All" || t.cat === curCat)){
+    const b = document.createElement("button"); b.className = "tcard"; b.title = `${t.cat}: ${t.name}`; b._t = t;
+    const box = document.createElement("div"); box.className = "tc"; box.append(thumbCanvas(t));
+    const sp = document.createElement("span"); sp.textContent = t.name; b.append(box, sp);
+    b.onclick = () => applyTemplate(t); grid.append(b);
+  }
+  markActive();
+}
+function markActive(){ $("tgrid").querySelectorAll(".tcard").forEach(b => b.setAttribute("aria-pressed", b._t === activeTpl)); }
+function edited(){ if (activeTpl){ activeTpl = null; markActive(); } }
+function splitSelected(dir){
+  if (!selected || leaves(tree).length >= MAX_CELLS){ if (selected) note(`A collage can have up to ${MAX_CELLS} cells.`, true); return; }
+  tree = replaceNode(tree, selected, {leaf:false, dir, ratio:.5, a:selected, b:L()});
+  edited(); note(""); renderTray(); syncBar(); requestDraw();
+}
+function deleteSelected(){
+  if (!selected) return;
+  const p = findParent(tree, selected); if (!p) return;
+  tree = replaceNode(tree, p, p.a === selected ? p.b : p.a);
+  selected = null; swapMode = false; edited(); renderTray(); syncBar(); requestDraw();
+}
+
+/* ---------- selected-cell toolbar ---------- */
+function syncBar(){
+  const bar = $("cellbar"); bar.hidden = !selected;
+  if (!selected) return;
+  const has = !!selected.img, many = leaves(tree).length > 1;
+  $("bRemove").disabled = !has; $("zoom").disabled = !has; $("bReset").disabled = !has;
+  $("bDelete").disabled = !many; $("bSwap").disabled = leaves(tree).length < 2;
+  $("bSwap").classList.toggle("on", swapMode); $("bSwap").textContent = swapMode ? "Pick the other cell…" : "Swap";
+  $("zoom").value = Math.round(selected.zoom*100);
+}
+
+/* ---------- pointer interaction ---------- */
+const cv = $("stage");
+function pt(e){ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*stage.W/r.width, y:(e.clientY-r.top)*stage.H/r.height, k:stage.W/r.width}; }
+function pickDivider(p){
+  let best = null, bd = 10*p.k;
+  for (const d of cache.divs){
+    const along = d.dir === "v" ? p.y >= d.r.y && p.y <= d.r.y+d.r.h : p.x >= d.r.x && p.x <= d.r.x+d.r.w;
+    const dist = Math.abs((d.dir === "v" ? p.x : p.y) - d.pos);
+    if (along && dist <= bd){ bd = dist; best = d; }
+  }
+  return best;
+}
+const pickCell = p => cache.cells.find(c => p.x >= c.r.x && p.x <= c.r.x+c.r.w && p.y >= c.r.y && p.y <= c.r.y+c.r.h) || null;
+
+cv.addEventListener("pointerdown", e => {
+  const p = pt(e); cv.setPointerCapture(e.pointerId);
+  const d = pickDivider(p);
+  if (d){ drag = {type:"div", d}; requestDraw(); return; }
+  const c = pickCell(p);
+  if (!c){ selected = null; swapMode = false; syncBar(); requestDraw(); return; }
+  if (swapMode && selected && c.leaf !== selected){
+    const a = selected, b = c.leaf;
+    [a.img, b.img] = [b.img, a.img]; [a.zoom, b.zoom] = [b.zoom, a.zoom]; [a.ox, b.ox] = [b.ox, a.ox]; [a.oy, b.oy] = [b.oy, a.oy];
+    swapMode = false; selected = b; renderTray(); syncBar(); requestDraw(); return;
+  }
+  swapMode = false; selected = c.leaf;
+  if (c.leaf.img){
+    const {mx, my} = limits(c.leaf, c.photo);
+    c.leaf.ox = clamp(c.leaf.ox, -mx/c.photo.w, mx/c.photo.w); c.leaf.oy = clamp(c.leaf.oy, -my/c.photo.h, my/c.photo.h);
+  }
+  drag = {type:"pan", c, sx:p.x, sy:p.y, ox:c.leaf.ox, oy:c.leaf.oy, moved:false};
+  syncBar(); requestDraw();
+});
+cv.addEventListener("pointermove", e => {
+  const p = pt(e);
+  if (drag && drag.type === "div"){
+    const d = drag.d;
+    let r = d.dir === "v" ? (p.x-d.r.x)/d.r.w : (p.y-d.r.y)/d.r.h;
+    r = clamp(r, .1, .9);
+    if (!e.altKey) for (const s of [.25, 1/3, .5, 2/3, .75]) if (Math.abs(r-s) < .012) r = s;
+    d.node.ratio = r; edited(); requestDraw(); return;
+  }
+  if (drag && drag.type === "pan"){
+    const dx = p.x-drag.sx, dy = p.y-drag.sy;
+    if (Math.hypot(dx, dy) > 4*p.k) drag.moved = true;
+    const leaf = drag.c.leaf;
+    if (leaf.img && drag.moved){
+      const {mx, my} = limits(leaf, drag.c.photo);
+      leaf.ox = clamp(drag.ox + dx/drag.c.photo.w, -mx/drag.c.photo.w, mx/drag.c.photo.w);
+      leaf.oy = clamp(drag.oy + dy/drag.c.photo.h, -my/drag.c.photo.h, my/drag.c.photo.h);
+      requestDraw();
+    }
+    return;
+  }
+  const d = pickDivider(p), c = d ? null : pickCell(p);
+  const hl = c ? c.leaf : null;
+  if ((d && d.node) !== hoverDiv || hl !== hoverLeaf){ hoverDiv = d ? d.node : null; hoverLeaf = hl; requestDraw(); }
+  cv.style.cursor = d ? (d.dir === "v" ? "ew-resize" : "ns-resize") : swapMode ? "alias" : c ? (c.leaf.img ? "grab" : "pointer") : "default";
+});
+cv.addEventListener("pointerup", () => {
+  if (drag && drag.type === "pan" && !drag.moved && !drag.c.leaf.img) openCellPicker(drag.c.leaf);
+  drag = null; requestDraw();
+});
+cv.addEventListener("pointerleave", () => { if (!drag){ hoverDiv = null; hoverLeaf = null; requestDraw(); } });
+cv.addEventListener("dblclick", e => { const c = pickCell(pt(e)); if (c && c.leaf.img) openCellPicker(c.leaf); });
+cv.addEventListener("wheel", e => {
+  const c = pickCell(pt(e)); if (!c || !c.leaf.img) return;
+  e.preventDefault(); selected = c.leaf;
+  c.leaf.zoom = clamp(c.leaf.zoom*Math.exp(-e.deltaY*.0015), 1, 5);
+  syncBar(); requestDraw();
+}, {passive:false});
+
+/* files dropped from the desktop, or photos dragged from the tray */
+cv.addEventListener("dragover", e => {
+  const t = e.dataTransfer.types; if (!t.includes("Files") && !t.includes("text/x-collage-img")) return;
+  e.preventDefault(); const c = pickCell(pt(e)), l = c ? c.leaf : null;
+  if (l !== dropLeaf){ dropLeaf = l; requestDraw(); }
+});
+cv.addEventListener("dragleave", () => { dropLeaf = null; requestDraw(); });
+cv.addEventListener("drop", e => {
+  e.preventDefault(); e.stopPropagation();
+  const target = dropLeaf; dropLeaf = null;
+  const id = e.dataTransfer.getData("text/x-collage-img");
+  if (id){ const im = images.find(i => i.id === +id); if (im) placeImage(im, target || undefined); }
+  else if (e.dataTransfer.files.length) addFiles([...e.dataTransfer.files], target);
+  requestDraw();
+});
+window.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) e.preventDefault(); });
+window.addEventListener("drop", e => { if (e.dataTransfer.files.length){ e.preventDefault(); addFiles([...e.dataTransfer.files]); } });
+window.addEventListener("paste", e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) addFiles(fs, selected && !selected.img ? selected : undefined); });
+window.addEventListener("keydown", e => {
+  if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== "range") return;
+  if (e.key === "Escape" && swapMode){ swapMode = false; syncBar(); requestDraw(); }
+  if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.img){ selected.img = null; renderTray(); syncBar(); requestDraw(); }
+});
+
+/* ---------- controls ---------- */
+let pickTarget = null;
+function openCellPicker(leaf){ pickTarget = leaf; $("fileCell").click(); }
+$("fileCell").onchange = e => { addFiles([...e.target.files], pickTarget); e.target.value = ""; };
+$("fileAdd").onchange = e => { addFiles([...e.target.files]); e.target.value = ""; };
+$("bAdd").onclick = () => $("fileAdd").click();
+$("bReplace").onclick = () => selected && openCellPicker(selected);
+$("bRemove").onclick = () => { if (selected){ selected.img = null; renderTray(); syncBar(); requestDraw(); } };
+$("bSwap").onclick = () => { swapMode = !swapMode; syncBar(); requestDraw(); };
+$("bSplitV").onclick = () => splitSelected("v");
+$("bSplitH").onclick = () => splitSelected("h");
+$("bDelete").onclick = deleteSelected;
+$("bReset").onclick = () => { if (selected){ selected.zoom = 1; selected.ox = selected.oy = 0; syncBar(); requestDraw(); } };
+$("zoom").oninput = e => { if (selected && selected.img){ selected.zoom = e.target.value/100; requestDraw(); } };
+$("bShuffle").onclick = () => {
+  const ls = leaves(tree).filter(l => l.img), imgs = ls.map(l => l.img);
+  for (let i = imgs.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [imgs[i], imgs[j]] = [imgs[j], imgs[i]]; }
+  ls.forEach((l, i) => { l.img = imgs[i]; l.zoom = 1; l.ox = l.oy = 0; }); syncBar(); requestDraw();
+};
+$("aspect").onchange = e => setStageShape(+e.target.value);
+for (const [id, key, out] of [["gap","gap","gapv"], ["pad","pad","padv"], ["rad","radius","radv"]])
+  $(id).oninput = e => { opt[key] = +e.target.value; $(out).textContent = e.target.value; requestDraw(); };
+const css = c => Array.isArray(c) ? `linear-gradient(135deg,${c[0]},${c[1]})` : c;
+function setBg(c){ opt.bg = c; $("bg").value = Array.isArray(c) ? c[0] : c; requestDraw(); }
+$("bg").oninput = e => setBg(e.target.value);
+for (const c of [["#fde68a","#fbcfe8"], ["#c7d2fe","#fbcfe8"], ["#bae6fd","#a7f3d0"], ["#1f2937","#4c1d95"],
+                 "#fde68a", "#fbcfe8", "#c7d2fe", "#000000", "#111827", "#f1f5f9", "#ffffff"].reverse()){
+  const b = document.createElement("button"); b.className = "sw"; b.style.background = css(c); b.title = Array.isArray(c) ? c.join(" → ") : c;
+  b.setAttribute("aria-label", "Background " + b.title); b.onclick = () => setBg(c); $("swatches").prepend(b);
+}
+$("shape").onchange = e => { opt.shape = e.target.value; requestDraw(); };
+for (const [id, key] of [["ttext","text"], ["tsub","sub"], ["tfont","font"], ["tcolor","color"], ["tpos","pos"], ["talign","align"]])
+  $(id).oninput = e => { title[key] = e.target.value; requestDraw(); };
+$("tcaps").onchange = e => { title.caps = e.target.checked; requestDraw(); };
+$("frame").onchange = e => { opt.frame = e.target.value; requestDraw(); };
+$("tilt").oninput = e => { opt.tilt = +e.target.value; $("tiltv").textContent = e.target.value + "°"; requestDraw(); };
+$("xfmt").onchange = e => { $("xqWrap").hidden = e.target.value === "png"; };
+$("xq").oninput = e => $("xqv").textContent = e.target.value;
+
+$("bExport").onclick = async () => {
+  if (!leaves(tree).some(l => l.img)){ note("Add at least one photo before downloading.", true); return; }
+  const fmt = $("xfmt").value, mime = "image/" + fmt, sc = +$("xsize").value;
+  const c = document.createElement("canvas"); c.width = Math.round(stage.W*sc); c.height = Math.round(stage.H*sc);
+  drawScene(c.getContext("2d"), sc, false, currentScene());
+  const blob = await new Promise(r => c.toBlob(r, mime, $("xq").value/100));
+  if (!blob || blob.type !== mime){ note(`This browser can't save ${fmt.toUpperCase()}. Try PNG or JPEG.`, true); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "collage." + (fmt === "jpeg" ? "jpg" : fmt); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  note(`Saved ${c.width}×${c.height} ${fmt.toUpperCase()}.`);
+};
+
+/* ---------- start ---------- */
+renderTemplates(); renderTray();
+applyTemplate(TEMPLATES.find(t => t.name === "The Wedding"));
+window.addEventListener("resize", requestDraw);
+</script>
+</body>
+</html>

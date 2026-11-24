@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en" data-tool="filter-studio">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Filter Studio</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:rgba(255,255,255,.78);--fg:#0f172a;--muted:#64748b;--border:rgba(15,23,42,.09);
+  --accent:#6366f1;--accent2:#8b5cf6;--accent-soft:rgba(99,102,241,.1);--field:#fff;
+  --ok:#059669;--err:#dc2626;--shadow:0 1px 2px rgba(15,23,42,.04),0 12px 32px -12px rgba(15,23,42,.14);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b0d14;--card:rgba(24,27,38,.72);--fg:#e8eaf2;--muted:#8a93a8;--border:rgba(255,255,255,.08);
+  --accent:#818cf8;--accent2:#a78bfa;--accent-soft:rgba(129,140,248,.14);--field:rgba(255,255,255,.04);
+  --ok:#34d399;--err:#f87171;--shadow:0 12px 32px -12px rgba(0,0,0,.6);
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light dark}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);
+  font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(60rem 30rem at 10% -10%,rgba(99,102,241,.18),transparent 60%),
+                   radial-gradient(50rem 28rem at 100% 0%,rgba(236,72,153,.13),transparent 60%);
+  background-repeat:no-repeat}
+main{max-width:1240px;margin:0 auto;padding:28px 16px 64px}
+.back{display:inline-flex;gap:6px;margin-bottom:14px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:600}
+.back:hover{color:var(--accent)}
+header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -6px var(--accent)}
+.logo svg{width:26px;height:26px}
+h1{margin:0;font-size:1.75rem;letter-spacing:-.02em;line-height:1.2}
+p.sub{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);
+  border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.side{position:sticky;top:16px;margin-bottom:0;max-height:calc(100vh - 32px);overflow:auto}
+h2{margin:0 0 12px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sec+.sec{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+label{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+label span{color:var(--fg);font-variant-numeric:tabular-nums}
+select,input[type=search]{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--field);color:var(--fg);font:inherit;outline:none}
+select:focus,input[type=search]:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;margin:10px 0 14px;
+  background:color-mix(in srgb,var(--accent) 25%,var(--border));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;
+  border:4px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:4px solid var(--accent);cursor:pointer}
+button{font:inherit;font-weight:600;font-size:.88rem;padding:8px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--field);color:var(--fg);cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(15,23,42,.3)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px -8px var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:56px 16px;cursor:pointer;
+  border:2px dashed color-mix(in srgb,var(--accent) 35%,transparent);border-radius:16px;transition:background .2s,border-color .2s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop .ico{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;margin-bottom:6px;background:var(--accent-soft);color:var(--accent)}
+.drop .ico svg{width:28px;height:28px}
+.drop .t{font-size:1.05rem;font-weight:600}.drop b{color:var(--accent)}
+.info{font-size:.82rem;color:var(--muted)}
+.stagewrap{display:flex;justify-content:center}
+.cmp{position:relative;margin:0 auto;border-radius:14px;overflow:hidden;user-select:none;border:1px solid var(--border);
+  box-shadow:0 10px 30px -12px rgba(15,23,42,.35)}
+.cmp canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
+.divider i{position:absolute;top:50%;left:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 14px rgba(0,0,0,.35);display:grid;place-items:center;color:#fff;font-style:normal}
+.divider i::after{content:"\2194"}
+.cmp input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.tag{position:absolute;top:10px;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:600;color:#fff;background:rgba(15,23,42,.65);pointer-events:none}
+.tag.l{left:10px}.tag.r{right:10px}
+.viewbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:14px}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--accent-soft)}
+.seg button{border:0;background:transparent;box-shadow:none;padding:6px 14px;border-radius:9px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--field);color:var(--accent);box-shadow:0 1px 4px rgba(15,23,42,.18)}
+.busy{display:inline-flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
+.busy i{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{margin-top:12px;padding:9px 12px;border-radius:12px;font-size:.84rem;color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.note.err{color:var(--err);background:color-mix(in srgb,var(--err) 10%,transparent)}
+.gtop{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+.gtop h2{margin:0}
+.gtop .count{font-size:.8rem;color:var(--muted);font-weight:600}
+.search{max-width:220px}
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cat{padding:5px 12px;font-size:.78rem;border-radius:99px;color:var(--muted)}
+.cat[aria-pressed=true]{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;max-height:560px;overflow:auto;padding:4px}
+.tile{display:flex;flex-direction:column;gap:5px;padding:5px 5px 7px;border-radius:12px;text-align:left;line-height:1.2}
+.tile canvas{width:100%;aspect-ratio:1;border-radius:8px;display:block;background:var(--accent-soft)}
+.tile span{font-size:.7rem;font-weight:600;color:var(--muted);padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+.tile[aria-pressed=true] span{color:var(--accent)}
+.empty{color:var(--muted);font-size:.9rem;padding:24px 4px}
+.layer{padding:10px 12px;border-radius:12px;background:var(--accent-soft);margin-bottom:8px}
+.layer .lt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.84rem;font-weight:600}
+.layer .lt button{padding:2px 8px;font-size:.75rem}
+.layer input[type=range]{margin:8px 0 2px}
+.chk{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-size:.82rem;color:var(--fg);cursor:pointer;margin:10px 0 0}
+.fine{font-size:.78rem;color:var(--muted);margin-top:14px;line-height:1.5}
+@media (max-width:960px){.workspace{grid-template-columns:1fr}.side{position:static;max-height:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<link rel="stylesheet" href="../../assets/theme.css">
+</head>
+<body>
+<main>
+  <nav class="topbar">
+    <a class="brand" href="../../index.html"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg></span>Toolbox</a>
+    <a class="back" href="../../index.html">← All tools</a>
+  </nav>
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="9" r="6"/><circle cx="12" cy="15" r="6"/></svg></div>
+    <div><h1>Filter Studio</h1><p class="sub">Give your photos a look: 130+ filters, stackable, with live previews of your own picture.</p></div>
+  </header>
+
+  <div class="workspace">
+    <section>
+      <div class="card">
+        <div class="drop" id="drop">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></div>
+          <div class="t">Drop a photo here or <b>browse</b></div>
+          <div class="info">You can also paste from the clipboard · PNG, JPG, WebP · up to 30 MB · filters below preview on a sample until you add one</div>
+        </div>
+        <div id="viewer" hidden>
+          <div class="stagewrap">
+            <div class="cmp" id="cmp">
+              <canvas id="cOut"></canvas><canvas id="cOrig"></canvas>
+              <span class="tag l" id="tagL">Original</span><span class="tag r" id="tagR">Filtered</span>
+              <div class="divider" id="div"><i></i></div>
+              <input type="range" id="split" min="0" max="100" value="50" aria-label="Drag to compare">
+            </div>
+          </div>
+          <div class="viewbar">
+            <div class="seg" role="group" aria-label="View">
+              <button data-v="result" aria-pressed="true">Filtered</button>
+              <button data-v="split" aria-pressed="false">Compare</button>
+              <button data-v="orig" aria-pressed="false">Original</button>
+            </div>
+            <span class="busy" id="busy" hidden><i></i>Rendering…</span>
+            <div class="row"><button id="bChange">Change photo</button></div>
+          </div>
+        </div>
+        <div class="note" id="note" hidden></div>
+        <input type="file" id="file" accept="image/*" hidden>
+      </div>
+
+      <div class="card">
+        <div class="gtop">
+          <h2>Filters</h2>
+          <span class="count" id="count"></span>
+          <input class="search" type="search" id="q" placeholder="Search filters…" aria-label="Search filters">
+        </div>
+        <div class="cats" id="cats"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <aside class="card side">
+      <div class="sec">
+        <h2>Applied filters</h2>
+        <div id="layers"></div>
+        <label class="chk"><input type="checkbox" id="stack"> Stack filters (up to 3)</label>
+      </div>
+      <div class="sec">
+        <h2>Adjust</h2>
+        <label for="aBright">Brightness <span id="aBrightv">0</span></label><input id="aBright" type="range" min="-100" max="100" value="0">
+        <label for="aContrast">Contrast <span id="aContrastv">0</span></label><input id="aContrast" type="range" min="-100" max="100" value="0">
+        <label for="aSat">Saturation <span id="aSatv">0</span></label><input id="aSat" type="range" min="-100" max="100" value="0">
+        <label for="aWarm">Warmth <span id="aWarmv">0</span></label><input id="aWarm" type="range" min="-100" max="100" value="0">
+        <label for="aVig">Vignette <span id="aVigv">0</span></label><input id="aVig" type="range" min="0" max="100" value="0">
+        <button id="bReset" style="width:100%">Reset everything</button>
+      </div>
+      <div class="sec">
+        <h2>Download</h2>
+        <div class="row" style="margin-bottom:12px">
+          <select id="xfmt" style="flex:1"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+          <select id="xsize" style="flex:1"><option value="1200">1200 px</option><option value="1800" selected>1800 px</option><option value="2400">2400 px</option></select>
+        </div>
+        <button class="primary" id="bExport" style="width:100%;padding:11px" disabled>Download photo</button>
+        <p class="fine">Everything runs on your device and nothing is uploaded. Filters are applied at full export size, so heavy ones (oil paint, cartoon) can take a few seconds.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const smoothstep = (a, b, x) => { const t = clamp((x - a)/(b - a), 0, 1); return t*t*(3 - 2*t); };
+const lum = (r, g, b) => .299*r + .587*g + .114*b;
+const hexCache = {};
+const rgb = h => Array.isArray(h) ? h : (hexCache[h] || (hexCache[h] = [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]));
+
+/* ================= effects engine =================
+   Every effect edits RGBA bytes in place: fn(d, w, h, params, s) where s = min(w,h)/900, so sizes
+   given in "900 px" units look the same on thumbnails, the preview and full-size exports. */
+const FX = {};
+const px = (v, s) => Math.max(1, Math.round(v*s));
+
+// Running-sum box blur with clamped edges (src and dst may be the same array).
+function box(src, dst, w, h, r, tmp){
+  for (let y = 0; y < h; y++){
+    const o = y*w; let sum = 0; const lim = Math.min(r, w-1);
+    for (let x = 0; x <= lim; x++) sum += src[o+x];
+    for (let x = 0; x < w; x++){
+      tmp[o+x] = sum/(Math.min(w-1, x+r) - Math.max(0, x-r) + 1);
+      if (x+r+1 < w) sum += src[o+x+r+1];
+      if (x-r >= 0) sum -= src[o+x-r];
+    }
+  }
+  const cs = new Float64Array(w), lim = Math.min(r, h-1);
+  for (let y = 0; y <= lim; y++){ const o = y*w; for (let x = 0; x < w; x++) cs[x] += tmp[o+x]; }
+  for (let y = 0; y < h; y++){
+    const inv = 1/(Math.min(h-1, y+r) - Math.max(0, y-r) + 1), o = y*w;
+    for (let x = 0; x < w; x++) dst[o+x] = cs[x]*inv;
+    if (y+r+1 < h){ const a = (y+r+1)*w; for (let x = 0; x < w; x++) cs[x] += tmp[a+x]; }
+    if (y-r >= 0){ const a = (y-r)*w; for (let x = 0; x < w; x++) cs[x] -= tmp[a+x]; }
+  }
+}
+function planes(d, n){
+  const R = new Float32Array(n), G = new Float32Array(n), B = new Float32Array(n);
+  for (let i = 0, o = 0; i < n; i++, o += 4){ R[i] = d[o]; G[i] = d[o+1]; B[i] = d[o+2]; }
+  return [R, G, B];
+}
+function store(d, R, G, B, n){ for (let i = 0, o = 0; i < n; i++, o += 4){ d[o] = R[i]; d[o+1] = G[i]; d[o+2] = B[i]; } }
+function blurPlanes(P, w, h, r, passes = 3){
+  const tmp = new Float32Array(w*h);
+  for (const C of P) for (let k = 0; k < passes; k++) box(C, C, w, h, r, tmp);
+}
+function hash(x, y, seed){
+  let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(seed + 1, 1274126177);
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h & 0xffff)/65535;
+}
+function lutFromPoints(pts){            // piecewise-linear curve, points in 0..1
+  const lut = new Float32Array(256);
+  for (let v = 0; v < 256; v++){
+    const x = v/255; let i = 0; while (i < pts.length-2 && x > pts[i+1][0]) i++;
+    const [x0, y0] = pts[i], [x1, y1] = pts[i+1], t = x1 === x0 ? 0 : clamp((x - x0)/(x1 - x0), 0, 1);
+    lut[v] = clamp(y0 + (y1 - y0)*t, 0, 1)*255;
+  }
+  return lut;
+}
+
+/* --- colour & tone --- */
+FX.grade = (d, w, h, p) => {
+  const n = w*h, lut = new Float32Array(256);
+  const em = Math.pow(2, p.ex || 0), co = 1 + (p.co || 0)*1.3, ga = p.ga || 1, fa = (p.fa || 0)*0.2;
+  for (let v = 0; v < 256; v++){
+    let x = v/255*em; x = (x - .5)*co + .5; x = clamp(x, 0, 1);
+    if (ga !== 1) x = Math.pow(x, 1/ga);
+    lut[v] = (fa + x*(1 - fa))*255;
+  }
+  const sat = 1 + (p.sa || 0), te = (p.te || 0)*24, ti = (p.ti || 0)*16, sh = p.sh, hi = p.hi, hu = (p.hu || 0)*Math.PI/180;
+  const c = Math.cos(hu), sn = Math.sin(hu);
+  const m = hu ? [.213 + c*.787 - sn*.213, .715 - c*.715 - sn*.715, .072 - c*.072 + sn*.928,
+                  .213 - c*.213 + sn*.143, .715 + c*.285 + sn*.140, .072 - c*.072 - sn*.283,
+                  .213 - c*.213 - sn*.787, .715 - c*.715 + sn*.715, .072 + c*.928 + sn*.072] : null;
+  for (let i = 0, o = 0; i < n; i++, o += 4){
+    let r = lut[d[o]], g = lut[d[o+1]], b = lut[d[o+2]];
+    if (te || ti){ r += te; b -= te; g -= ti; }
+    if (sat !== 1){ const L = lum(r, g, b); r = L + (r - L)*sat; g = L + (g - L)*sat; b = L + (b - L)*sat; }
+    if (m){ const r2 = m[0]*r + m[1]*g + m[2]*b, g2 = m[3]*r + m[4]*g + m[5]*b; b = m[6]*r + m[7]*g + m[8]*b; r = r2; g = g2; }
+    if (sh || hi){
+      const L = lum(r, g, b)/255;
+      if (sh){ const k = (1 - L)*(1 - L); r += sh[0]*k; g += sh[1]*k; b += sh[2]*k; }
+      if (hi){ const k = L*L; r += hi[0]*k; g += hi[1]*k; b += hi[2]*k; }
+    }
+    d[o] = r; d[o+1] = g; d[o+2] = b;
+  }
+};
+FX.mono = (d, w, h, p) => {
+  const wt = p.w || [.3, .59, .11];
+  for (let i = 0, n = w*h*4; i < n; i += 4){ const L = wt[0]*d[i] + wt[1]*d[i+1] + wt[2]*d[i+2]; d[i] = d[i+1] = d[i+2] = L; }
+};
+FX.gradmap = (d, w, h, p) => {
+  const st = p.stops.map(([t, c]) => [t, rgb(c)]), lut = [], mix = p.mix ?? 1;
+  for (let v = 0; v < 256; v++){
+    const x = v/255; let i = 0; while (i < st.length-2 && x > st[i+1][0]) i++;
+    const [t0, c0] = st[i], [t1, c1] = st[i+1], t = clamp((x - t0)/((t1 - t0) || 1), 0, 1);
+    lut.push([c0[0] + (c1[0]-c0[0])*t, c0[1] + (c1[1]-c0[1])*t, c0[2] + (c1[2]-c0[2])*t]);
+  }
+  for (let i = 0, n = w*h*4; i < n; i += 4){
+    const c = lut[lum(d[i], d[i+1], d[i+2]) | 0];
+    d[i] += (c[0] - d[i])*mix; d[i+1] += (c[1] - d[i+1])*mix; d[i+2] += (c[2] - d[i+2])*mix;
+  }
+};
+FX.sepia = (d, w, h, p) => {
+  const a = p.a ?? 1;
+  for (let i = 0, n = w*h*4; i < n; i += 4){
+    const r = d[i], g = d[i+1], b = d[i+2];
+    d[i]   = r + (r*.393 + g*.769 + b*.189 - r)*a;
+    d[i+1] = g + (r*.349 + g*.686 + b*.168 - g)*a;
+    d[i+2] = b + (r*.272 + g*.534 + b*.131 - b)*a;
+  }
+};
+FX.curves = (d, w, h, p) => {
+  const m = p.m ? lutFromPoints(p.m) : null, R = lutFromPoints(p.r || [[0,0],[1,1]]), G = lutFromPoints(p.g || [[0,0],[1,1]]), B = lutFromPoints(p.b || [[0,0],[1,1]]);
+  for (let i = 0, n = w*h*4; i < n; i += 4){
+    let r = R[d[i]], g = G[d[i+1]], b = B[d[i+2]];
+    if (m){ r = m[r | 0]; g = m[g | 0]; b = m[b | 0]; }
+    d[i] = r; d[i+1] = g; d[i+2] = b;
+  }
+};
+FX.invert = (d, w, h) => { for (let i = 0, n = w*h*4; i < n; i += 4){ d[i] = 255 - d[i]; d[i+1] = 255 - d[i+1]; d[i+2] = 255 - d[i+2]; } };
+FX.posterize = (d, w, h, p) => {
+  const n = Math.max(2, p.n || 4), lut = new Float32Array(256);
+  for (let v = 0; v < 256; v++) lut[v] = Math.round(v/255*(n - 1))/(n - 1)*255;
+  for (let i = 0, m = w*h*4; i < m; i += 4){ d[i] = lut[d[i]]; d[i+1] = lut[d[i+1]]; d[i+2] = lut[d[i+2]]; }
+};
+
+/* --- lens & film --- */
+FX.vignette = (d, w, h, p) => {
+  const a = p.a ?? .4, r0 = p.r ?? .5, c = rgb(p.c || "#000000"), cx = (w - 1)/2, cy = (h - 1)/2;
+  for (let y = 0; y < h; y++){
+    const dy = (y - cy)/cy;
+    for (let x = 0; x < w; x++){
+      const dx = (x - cx)/cx, t = smoothstep(r0, 1, Math.sqrt(dx*dx + dy*dy)/1.4142)*a, o = (y*w + x)*4;
+      d[o] += (c[0] - d[o])*t; d[o+1] += (c[1] - d[o+1])*t; d[o+2] += (c[2] - d[o+2])*t;
+    }
+  }
+};
+FX.grain = (d, w, h, p, s) => {
+  const a = (p.a ?? .2)*90, size = Math.max(1, Math.round((p.size ?? 1.2)*Math.max(1, s*1.2))), seed = p.seed || 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const o = (y*w + x)*4, L = lum(d[o], d[o+1], d[o+2])/255;
+    const nz = (hash((x/size) | 0, (y/size) | 0, seed) - .5)*a*(1 - Math.abs(2*L - 1)*.5);
+    d[o] += nz; d[o+1] += nz; d[o+2] += nz;
+  }
+};
+FX.blur = (d, w, h, p, s) => {
+  const n = w*h, P = planes(d, n); blurPlanes(P, w, h, px(p.r || 3, s)); store(d, P[0], P[1], P[2], n);
+};
+FX.glow = (d, w, h, p, s) => {
+  const n = w*h, a = p.a ?? .4, t = (p.t ?? .55)*255, P = planes(d, n), O = planes(d, n);
+  for (const C of P) for (let i = 0; i < n; i++) C[i] = Math.max(0, C[i] - t)/(255 - t)*255;
+  blurPlanes(P, w, h, px(p.r || 12, s));
+  for (let k = 0; k < 3; k++) for (let i = 0; i < n; i++) O[k][i] = 255 - (255 - O[k][i])*(255 - P[k][i]*a)/255;
+  store(d, O[0], O[1], O[2], n);
+};
+FX.sharpen = (d, w, h, p, s) => {
+  const n = w*h, a = p.a ?? .5, O = planes(d, n), B = planes(d, n); blurPlanes(B, w, h, px(p.r || 1.5, s), 2);
+  for (let k = 0; k < 3; k++) for (let i = 0; i < n; i++) O[k][i] += (O[k][i] - B[k][i])*a*2;
+  store(d, O[0], O[1], O[2], n);
+};
+FX.tilt = (d, w, h, p, s) => {                     // miniature / tilt-shift
+  const n = w*h, O = planes(d, n), B = planes(d, n), f = p.focus ?? .5, band = p.band ?? .15;
+  blurPlanes(B, w, h, px(p.r || 8, s));
+  for (let y = 0; y < h; y++){
+    const k = smoothstep(band, band + .3, Math.abs(y/h - f));
+    for (let x = 0; x < w; x++){ const i = y*w + x; for (let c = 0; c < 3; c++) O[c][i] += (B[c][i] - O[c][i])*k; }
+  }
+  store(d, O[0], O[1], O[2], n);
+};
+FX.overlay = (d, w, h, p) => {
+  const c = rgb(p.color), op = p.op ?? .5, dir = p.dir || "left", mode = p.blend || "screen";
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    let t;
+    if (dir === "left") t = Math.pow(1 - x/w, 1.6); else if (dir === "right") t = Math.pow(x/w, 1.6);
+    else if (dir === "top") t = Math.pow(1 - y/h, 1.6); else if (dir === "bottom") t = Math.pow(y/h, 1.6);
+    else t = Math.pow(clamp(1 - Math.hypot(x/w - (p.cx ?? .85), (y/h - (p.cy ?? .1))*h/w)/(p.rad ?? .9), 0, 1), 1.4);
+    t *= op; const o = (y*w + x)*4;
+    for (let k = 0; k < 3; k++){
+      const b = d[o+k], f = c[k]; let r;
+      if (mode === "screen") r = 255 - (255 - b)*(255 - f)/255;
+      else if (mode === "multiply") r = b*f/255;
+      else if (mode === "add") r = b + f;
+      else r = b < 128 ? 2*b*f/255 : 255 - 2*(255 - b)*(255 - f)/255;
+      d[o+k] = b + (r - b)*t;
+    }
+  }
+};
+FX.bars = (d, w, h, p) => {
+  const ratio = p.ratio || 2.39, c = rgb(p.c || "#000000");
+  if (w/h >= ratio) return;
+  const bh = Math.round((h - w/ratio)/2);
+  for (let y = 0; y < h; y++) if (y < bh || y >= h - bh) for (let x = 0; x < w; x++){ const o = (y*w + x)*4; d[o] = c[0]; d[o+1] = c[1]; d[o+2] = c[2]; }
+};
+
+/* --- stylise --- */
+FX.pixelate = (d, w, h, p, s) => {
+  const b = px(p.size || 8, s);
+  for (let y0 = 0; y0 < h; y0 += b) for (let x0 = 0; x0 < w; x0 += b){
+    const x1 = Math.min(w, x0 + b), y1 = Math.min(h, y0 + b); let r = 0, g = 0, bl = 0, c = 0;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){ const o = (y*w + x)*4; r += d[o]; g += d[o+1]; bl += d[o+2]; c++; }
+    r /= c; g /= c; bl /= c;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){ const o = (y*w + x)*4; d[o] = r; d[o+1] = g; d[o+2] = bl; }
+  }
+};
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+FX.palette = (d, w, h, p) => {
+  const pal = p.colors.map(rgb), dith = (p.dither ?? .3)*96;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const o = (y*w + x)*4, t = (BAYER[(y & 3)*4 + (x & 3)]/16 - .5)*dith, r = d[o] + t, g = d[o+1] + t, b = d[o+2] + t;
+    let best = 0, bd = Infinity;
+    for (let k = 0; k < pal.length; k++){
+      const c = pal[k], dr = c[0] - r, dg = c[1] - g, db = c[2] - b, dd = dr*dr*.3 + dg*dg*.59 + db*db*.11;
+      if (dd < bd){ bd = dd; best = k; }
+    }
+    const c = pal[best]; d[o] = c[0]; d[o+1] = c[1]; d[o+2] = c[2];
+  }
+};
+FX.halftone = (d, w, h, p, s) => {
+  const n = w*h, cell = Math.max(3, Math.round((p.size || 9)*s)), P = planes(d, n), ink = rgb(p.ink || "#111111"), paper = rgb(p.paper || "#ffffff");
+  blurPlanes(P, w, h, Math.max(1, cell >> 1), 2);
+  const dots = (plane, ang) => {
+    const out = new Float32Array(n), ca = Math.cos(ang), sa = Math.sin(ang);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+      const u = (x*ca + y*sa)/cell, v = (-x*sa + y*ca)/cell, cu = Math.floor(u) + .5, cv = Math.floor(v) + .5;
+      const sx = clamp(Math.round((cu*ca - cv*sa)*cell), 0, w-1), sy = clamp(Math.round((cu*sa + cv*ca)*cell), 0, h-1);
+      const cov = 1 - plane[sy*w + sx]/255, r = Math.sqrt(cov)*.72, dist = Math.hypot(u - cu, v - cv);
+      out[y*w + x] = clamp((r - dist)*cell + .5, 0, 1);
+    }
+    return out;
+  };
+  if (p.mode === "rgb"){
+    const a = [dots(P[0], .26), dots(P[1], 1.31), dots(P[2], 0)];
+    for (let i = 0, o = 0; i < n; i++, o += 4){ d[o] = 255*(1 - a[0][i]); d[o+1] = 255*(1 - a[1][i]); d[o+2] = 255*(1 - a[2][i]); }
+  } else {
+    const G = new Float32Array(n); for (let i = 0; i < n; i++) G[i] = lum(P[0][i], P[1][i], P[2][i]);
+    const a = dots(G, .785);
+    for (let i = 0, o = 0; i < n; i++, o += 4){ const t = a[i]; d[o] = paper[0] + (ink[0] - paper[0])*t; d[o+1] = paper[1] + (ink[1] - paper[1])*t; d[o+2] = paper[2] + (ink[2] - paper[2])*t; }
+  }
+};
+FX.emboss = (d, w, h, p) => {
+  const n = w*h, G = new Float32Array(n), a = p.a ?? 1, mix = p.mix ?? 0, src = d.slice();
+  for (let i = 0; i < n; i++) G[i] = lum(d[i*4], d[i*4+1], d[i*4+2]);
+  for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++){
+    const i = y*w + x;
+    const e = 128 + a*(-2*G[i-w-1] - G[i-w] - G[i-1] + G[i+1] + G[i+w] + 2*G[i+w+1]), o = i*4;
+    d[o] = e + (src[o] - e)*mix; d[o+1] = e + (src[o+1] - e)*mix; d[o+2] = e + (src[o+2] - e)*mix;
+  }
+};
+FX.edges = (d, w, h, p, s) => {
+  const n = w*h, src = d.slice(), mode = p.mode || "ink", G = new Float32Array(n), tmp = new Float32Array(n);
+  for (let i = 0; i < n; i++) G[i] = lum(src[i*4], src[i*4+1], src[i*4+2]);
+  if (mode === "sketch"){                           // colour-dodge pencil
+    const inv = new Float32Array(n); for (let i = 0; i < n; i++) inv[i] = 255 - G[i];
+    for (let k = 0; k < 3; k++) box(inv, inv, w, h, px((p.r || 7)/2, s), tmp);
+    const cm = p.color || 0;
+    for (let i = 0; i < n; i++){
+      const v = 255*Math.pow(Math.min(255, G[i]*255/(255 - inv[i] + 1))/255, 1.7), o = i*4;
+      d[o] = v + (v*src[o]/255 - v)*cm; d[o+1] = v + (v*src[o+1]/255 - v)*cm; d[o+2] = v + (v*src[o+2]/255 - v)*cm;
+    }
+    return;
+  }
+  const Gb = G.slice(); box(Gb, Gb, w, h, px(1.2, s), tmp);
+  const mag = new Float32Array(n), t = p.t ?? .5, t0 = 40 - 34*t, t1 = t0*2.4;
+  for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++){
+    const i = y*w + x, gx = (Gb[i-w+1] + 2*Gb[i+1] + Gb[i+w+1] - Gb[i-w-1] - 2*Gb[i-1] - Gb[i+w-1])/4;
+    const gy = (Gb[i+w-1] + 2*Gb[i+w] + Gb[i+w+1] - Gb[i-w-1] - 2*Gb[i-w] - Gb[i-w+1])/4;
+    mag[i] = smoothstep(t0, t1, Math.hypot(gx, gy));
+  }
+  const th = px(p.w ?? 1, s);
+  if (th > 1){ box(mag, mag, w, h, th >> 1, tmp); for (let i = 0; i < n; i++) mag[i] = smoothstep(.08, .5, mag[i]); }
+  const ink = rgb(p.ink || "#111111"), paper = rgb(p.paper || "#ffffff");
+  if (mode === "ink"){
+    for (let i = 0, o = 0; i < n; i++, o += 4){ const m = mag[i]; d[o] = paper[0] + (ink[0] - paper[0])*m; d[o+1] = paper[1] + (ink[1] - paper[1])*m; d[o+2] = paper[2] + (ink[2] - paper[2])*m; }
+  } else if (mode === "lines"){
+    for (let i = 0, o = 0; i < n; i++, o += 4){ const m = mag[i]; d[o] += (ink[0] - d[o])*m; d[o+1] += (ink[1] - d[o+1])*m; d[o+2] += (ink[2] - d[o+2])*m; }
+  } else {                                            // neon
+    const glow = mag.slice(); for (let k = 0; k < 3; k++) box(glow, glow, w, h, px(5, s), tmp);
+    const col = p.col ? rgb(p.col) : null, bg = p.bg ?? .12;
+    for (let i = 0, o = 0; i < n; i++, o += 4){
+      const e = clamp(mag[i] + glow[i]*1.6, 0, 1), mx = Math.max(src[o], src[o+1], src[o+2], 1);
+      for (let k = 0; k < 3; k++){
+        const c = col ? col[k] : Math.min(255, src[o+k]/mx*255*1.1);
+        d[o+k] = clamp(src[o+k]*bg + c*e, 0, 255);
+      }
+    }
+  }
+};
+FX.oil = (d, w, h, p, s) => {
+  const r = clamp(Math.round((p.r || 3)*s), 2, 8), lv = p.lv || 20, n = w*h, src = d.slice(), bin = new Uint8Array(n);
+  for (let i = 0; i < n; i++) bin[i] = Math.min(lv - 1, (lum(src[i*4], src[i*4+1], src[i*4+2])*lv/256) | 0);
+  const cnt = new Int32Array(lv), sr = new Int32Array(lv), sg = new Int32Array(lv), sb = new Int32Array(lv);
+  let y0 = 0, y1 = 0;
+  const col = (x, sgn) => {
+    for (let yy = y0; yy <= y1; yy++){ const j = yy*w + x, b = bin[j], o = j*4; cnt[b] += sgn; sr[b] += sgn*src[o]; sg[b] += sgn*src[o+1]; sb[b] += sgn*src[o+2]; }
+  };
+  for (let y = 0; y < h; y++){
+    cnt.fill(0); sr.fill(0); sg.fill(0); sb.fill(0); y0 = Math.max(0, y - r); y1 = Math.min(h - 1, y + r);
+    for (let x = 0; x <= Math.min(r, w - 1); x++) col(x, 1);
+    for (let x = 0; x < w; x++){
+      if (x > 0){ if (x + r < w) col(x + r, 1); if (x - r - 1 >= 0) col(x - r - 1, -1); }
+      let best = 0, bc = -1; for (let b = 0; b < lv; b++) if (cnt[b] > bc){ bc = cnt[b]; best = b; }
+      const o = (y*w + x)*4; d[o] = sr[best]/bc; d[o+1] = sg[best]/bc; d[o+2] = sb[best]/bc;
+    }
+  }
+};
+
+// Cartoon: edge-preserving smoothing + flat colour bands + ink outlines.
+function guided(P, w, h, r, eps, b){
+  const n = w*h, {tmp, m1, m2, m3} = b;
+  box(P, m1, w, h, r, tmp);
+  for (let i = 0; i < n; i++) m2[i] = P[i]*P[i];
+  box(m2, m2, w, h, r, tmp);
+  for (let i = 0; i < n; i++){ const v = Math.max(0, m2[i] - m1[i]*m1[i]), a = v/(v + eps); m2[i] = a; m3[i] = m1[i] - a*m1[i]; }
+  box(m2, m2, w, h, r, tmp); box(m3, m3, w, h, r, tmp);
+  for (let i = 0; i < n; i++) P[i] = m2[i]*P[i] + m3[i];
+}
+FX.toon = (d, w, h, p, s) => {
+  const n = w*h, P = planes(d, n), buf = {tmp:new Float32Array(n), m1:new Float32Array(n), m2:new Float32Array(n), m3:new Float32Array(n)};
+  for (const C of P) for (let i = 0; i < n; i++) C[i] /= 255;
+  const [R, G, B] = P, s01 = (p.smooth ?? 55)/100, eps0 = 0.0008 + s01*s01*0.03;
+  for (let pass = 0; pass < 3; pass++){
+    const r = Math.max(2, Math.round((2.5 + pass*2.5)*s*(0.5 + s01))), eps = eps0*(1 + pass*0.8);
+    for (const C of P) guided(C, w, h, r, eps, buf);
+  }
+  const line = (p.line ?? 65)/100; let mask = null;
+  if (line > 0){
+    mask = new Float32Array(n);
+    const thr0 = 0.16 - 0.13*line, thr1 = thr0*2.4;
+    for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++){
+      const i = y*w + x; let m = 0;
+      for (const C of P){
+        const gx = (C[i-w+1] + 2*C[i+1] + C[i+w+1] - C[i-w-1] - 2*C[i-1] - C[i+w-1])/4;
+        const gy = (C[i+w-1] + 2*C[i+w] + C[i+w+1] - C[i-w-1] - 2*C[i-w] - C[i-w+1])/4;
+        m = Math.max(m, gx*gx + gy*gy);
+      }
+      mask[i] = smoothstep(thr0, thr1, Math.sqrt(m));
+    }
+    const rt = Math.round((p.width ?? 1.5)*s*0.9);
+    if (rt >= 1){ box(mask, mask, w, h, rt, buf.tmp); for (let i = 0; i < n; i++) mask[i] = smoothstep(.08, .5, mask[i]); }
+  }
+  const lv = p.levels ?? 6, sat = p.sat ?? 1.3, soft = .14, lc = rgb(p.lc || "#1c1726");
+  for (let i = 0; i < n; i++){
+    let r = R[i], g = G[i], b = B[i];
+    const L = clamp(.299*r + .587*g + .114*b, 0, 1), x = L*lv, f = Math.floor(x), q = (f + smoothstep(.5 - soft, .5 + soft, x - f))/lv;
+    const k = L > 0.03 ? clamp(q/L, 0.3, 2.2) : 1; r *= k; g *= k; b *= k;
+    const gr = .299*r + .587*g + .114*b; r = gr + (r - gr)*sat; g = gr + (g - gr)*sat; b = gr + (b - gr)*sat;
+    r = clamp((r - .5)*1.08 + .5, 0, 1)*255; g = clamp((g - .5)*1.08 + .5, 0, 1)*255; b = clamp((b - .5)*1.08 + .5, 0, 1)*255;
+    if (mask){ const m = mask[i]*(0.3 + 0.7*line); r += (lc[0] - r)*m; g += (lc[1] - g)*m; b += (lc[2] - b)*m; }
+    const o = i*4; d[o] = r; d[o+1] = g; d[o+2] = b;
+  }
+};
+
+/* --- glitch & distortion --- */
+FX.glitch = (d, w, h, p, s) => {
+  const src = d.slice(), rand = (() => { let a = (p.seed || 1)*2654435761 >>> 0; return () => (a = Math.imul(a ^ (a >>> 15), 2246822519) >>> 0, a/4294967296); })();
+  const bands = p.bands || 0, shift = Math.round((p.shift || 0)*s), scan = p.scan || 0;
+  if (bands){
+    for (let k = 0; k < bands; k++){
+      const y0 = Math.floor(rand()*h), bh = Math.max(2, Math.floor((rand()*.06 + .01)*h)), dx = Math.round((rand() - .5)*w*.14);
+      for (let y = y0; y < Math.min(h, y0 + bh); y++) for (let x = 0; x < w; x++){
+        const xs = clamp(x - dx, 0, w - 1), o = (y*w + x)*4, q = (y*w + xs)*4; d[o] = src[q]; d[o+1] = src[q+1]; d[o+2] = src[q+2];
+      }
+    }
+  }
+  if (shift){
+    const cur = d.slice();
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+      const o = (y*w + x)*4;
+      d[o] = cur[(y*w + clamp(x + shift, 0, w - 1))*4];
+      d[o+2] = cur[(y*w + clamp(x - shift, 0, w - 1))*4 + 2];
+    }
+  }
+  if (scan){
+    const period = Math.max(2, Math.round(3*s));
+    for (let y = 0; y < h; y += period) for (let x = 0; x < w; x++){ const o = (y*w + x)*4; d[o] *= 1 - scan; d[o+1] *= 1 - scan; d[o+2] *= 1 - scan; }
+  }
+};
+FX.chroma = (d, w, h, p, s) => {
+  const src = d.slice(), a = (p.a || 10)*s, cx = (w - 1)/2, cy = (h - 1)/2;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const dx = (x - cx)/cx, dy = (y - cy)/cy, o = (y*w + x)*4;
+    d[o] = src[(clamp(Math.round(y + dy*a), 0, h-1)*w + clamp(Math.round(x + dx*a), 0, w-1))*4];
+    d[o+2] = src[(clamp(Math.round(y - dy*a), 0, h-1)*w + clamp(Math.round(x - dx*a), 0, w-1))*4 + 2];
+  }
+};
+FX.warp = (d, w, h, p) => {
+  const src = d.slice(), cx = (w - 1)/2, cy = (h - 1)/2, R = Math.min(w, h)/2, a = p.a ?? .8, type = p.type || "swirl";
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const dx = (x - cx)/R, dy = (y - cy)/R, rr = Math.hypot(dx, dy); let sx = x, sy = y;
+    if (type === "swirl" && rr < 1.2){ const ang = (1 - rr/1.2)*(1 - rr/1.2)*a*3, c = Math.cos(ang), sn = Math.sin(ang); sx = cx + (dx*c - dy*sn)*R; sy = cy + (dx*sn + dy*c)*R; }
+    else if ((type === "bulge" || type === "fisheye") && rr < (type === "fisheye" ? 1.5 : 1) && rr > 0){
+      const lim = type === "fisheye" ? 1.5 : 1, nr = lim*Math.pow(rr/lim, 1 + a); sx = cx + dx/rr*nr*R; sy = cy + dy/rr*nr*R; }
+    else if (type === "pinch" && rr < 1 && rr > 0){ const nr = Math.pow(rr, 1/(1 + a)); sx = cx + dx/rr*nr*R; sy = cy + dy/rr*nr*R; }
+    else if (type === "ripple"){ sx = x + Math.sin(y/h*Math.PI*10)*a*w*.02; sy = y + Math.sin(x/w*Math.PI*10)*a*h*.02; }
+    sx = clamp(sx, 0, w - 1.001); sy = clamp(sy, 0, h - 1.001);
+    const x0 = sx | 0, y0 = sy | 0, fx = sx - x0, fy = sy - y0, o = (y*w + x)*4;
+    for (let k = 0; k < 3; k++){
+      const a00 = src[(y0*w + x0)*4 + k], a10 = src[(y0*w + x0 + 1)*4 + k], a01 = src[((y0 + 1)*w + x0)*4 + k], a11 = src[((y0 + 1)*w + x0 + 1)*4 + k];
+      d[o+k] = (a00*(1 - fx) + a10*fx)*(1 - fy) + (a01*(1 - fx) + a11*fx)*fy;
+    }
+  }
+};
+FX.mirror = (d, w, h, p) => {
+  const mode = p.mode || "h";
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    let sx = x, sy = y;
+    if (mode === "h" || mode === "quad") sx = x < w/2 ? x : w - 1 - x;
+    if (mode === "v" || mode === "quad") sy = y < h/2 ? y : h - 1 - y;
+    if (sx !== x || sy !== y){ const o = (y*w + x)*4, q = (sy*w + sx)*4; d[o] = d[q]; d[o+1] = d[q+1]; d[o+2] = d[q+2]; }
+  }
+};
+
+/* ================= preset library ================= */
+const g = o => ["grade", o], vig = (a, r = .5, c) => ["vignette", {a, r, c}], grain = (a, size = 1.2, seed = 0) => ["grain", {a, size, seed}];
+const glow = (r, a, t = .55) => ["glow", {r, a, t}], sharp = a => ["sharpen", {a}], mono = w => ["mono", {w}];
+const duo = (a, b, mix = 1) => ["gradmap", {stops:[[0, a], [1, b]], mix}], sepia = a => ["sepia", {a}];
+const fx = (name, p) => [name, p];
+const PRESETS = [];
+const add = (cat, name, steps) => PRESETS.push({cat, name, steps});
+
+// Portrait
+add("Portrait", "Soft Skin",   [glow(10, .35, .5), g({ex:.08, co:-.08, sa:-.05, te:.08, fa:.05})]);
+add("Portrait", "Glow Up",     [glow(14, .5, .5), g({ex:.12, co:.05, sa:.1, te:.1})]);
+add("Portrait", "Peachy",      [g({ex:.05, te:.3, ti:.15, sa:.05, fa:.08, hi:[10, 0, -6]}), glow(10, .25)]);
+add("Portrait", "Porcelain",   [g({ex:.2, co:-.12, sa:-.25, fa:.1, te:-.05}), glow(12, .3)]);
+add("Portrait", "Warm Glam",   [g({ex:.05, co:.12, sa:.12, te:.35, sh:[14, 0, -8]}), vig(.25)]);
+add("Portrait", "Cool Tone",   [g({co:.08, sa:-.05, te:-.3, ti:-.05}), glow(8, .2)]);
+add("Portrait", "Dewy",        [g({ex:.1, co:-.05, sa:.1, te:.12}), glow(16, .55, .45)]);
+add("Portrait", "Studio Pop",  [g({co:.25, sa:.2, ex:.05}), sharp(.5)]);
+add("Portrait", "Matte Portrait", [g({co:-.1, fa:.28, sa:-.1, te:.1}), grain(.12)]);
+add("Portrait", "Golden Skin", [g({te:.4, sa:.15, co:.1, sh:[12, 4, -6], hi:[14, 6, -8]}), glow(10, .3)]);
+// Film
+add("Film", "Golden Roll",     [g({te:.3, sa:.12, co:.12, fa:.12, sh:[8, 2, -6]}), grain(.22), vig(.25)]);
+add("Film", "Silver Roll",     [g({sa:-.35, co:.18, fa:.15}), grain(.28), vig(.25)]);
+add("Film", "Teal Fade",       [g({co:.1, sa:-.05, fa:.22, sh:[-8, 8, 12], hi:[8, 2, -6]}), grain(.2)]);
+add("Film", "Faded Emerald",   [g({co:.05, fa:.25, sa:-.1, hu:-8, sh:[-6, 12, 6]}), grain(.18)]);
+add("Film", "Cross Process",   [fx("curves", {r:[[0,0],[.25,.15],[.75,.9],[1,1]], g:[[0,0],[.5,.55],[1,1]], b:[[0,.15],[1,.85]]}), g({sa:.2, co:.1})]);
+add("Film", "Slide Pop",       [g({co:.28, sa:.35, ex:.02}), vig(.3)]);
+add("Film", "Tungsten Night",  [g({te:-.45, ex:-.05, co:.15, sa:.1, sh:[-6, 0, 14]}), grain(.2)]);
+add("Film", "Daylight 400",    [g({co:.1, sa:.05, te:.05, fa:.05}), grain(.3, 1.4)]);
+add("Film", "Expired Roll",    [g({co:-.05, fa:.3, sa:-.2, te:.2, ti:.2, hi:[10, -4, -10]}), grain(.3, 1.6), vig(.35, .5, "#201008")]);
+add("Film", "Polaroid Warm",   [g({co:-.05, fa:.22, te:.25, sh:[8, 6, 0], hi:[10, 2, -8]}), vig(.25, .6, "#1a1008"), grain(.15)]);
+add("Film", "Instant Cool",    [g({co:-.02, fa:.2, te:-.2, sa:-.05, sh:[0, 6, 12]}), vig(.2), grain(.15)]);
+add("Film", "Lomo",            [g({co:.3, sa:.3, te:.1}), vig(.6, .4)]);
+// Vintage
+add("Vintage", "Sepia Classic",   [sepia(1), g({co:.1}), vig(.3)]);
+add("Vintage", "Old Photo",       [sepia(.8), g({fa:.3, co:-.1}), grain(.3, 1.6), vig(.45, .5, "#201408")]);
+add("Vintage", "Postcard 1950",   [g({te:.2, sa:-.15, fa:.3, co:-.1, ti:.1}), grain(.2)]);
+add("Vintage", "Faded Memory",    [g({fa:.35, sa:-.3, co:-.15, te:.1})]);
+add("Vintage", "Sunburst",        [g({sa:.3, co:.18, te:.2, ex:.02}), vig(.25)]);
+add("Vintage", "Seventies Orange",[g({te:.4, sa:.1, co:.05, fa:.15, hu:-6, sh:[14, 0, -10]}), grain(.2)]);
+add("Vintage", "Eighties Pastel", [g({sa:-.1, fa:.15, co:-.1, ex:.1, sh:[10, 0, 14], hi:[10, 6, 0]}), glow(10, .25)]);
+add("Vintage", "Sixties Fade",    [g({sa:-.25, fa:.28, te:.12, co:.05}), grain(.25, 1.4)]);
+add("Vintage", "Dust & Grain",    [g({sa:-.15, fa:.15}), grain(.45, 1.8), vig(.3)]);
+add("Vintage", "Antique",         [sepia(.6), g({co:.15, fa:.2, sa:-.1}), vig(.5, .45, "#1c1209"), grain(.25)]);
+// Black & White
+add("Black & White", "Classic B&W",   [mono(), g({co:.15})]);
+add("Black & White", "High Contrast", [mono(), g({co:.55, ex:.03})]);
+add("Black & White", "Silver Noir",   [mono([.4, .5, .1]), g({co:.35, fa:.08}), vig(.4), grain(.15)]);
+add("Black & White", "Soft Mono",     [mono(), g({co:-.1, fa:.15, ex:.08}), glow(10, .3)]);
+add("Black & White", "Grainy Street", [mono(), g({co:.3}), grain(.55, 1.6)]);
+add("Black & White", "Film Noir",     [mono([.5, .4, .1]), g({co:.6, ex:-.08}), vig(.6, .4)]);
+add("Black & White", "Matte Mono",    [mono(), g({co:-.05, fa:.3})]);
+add("Black & White", "Bleach Bypass", [g({sa:-.55, co:.4}), grain(.2)]);
+add("Black & White", "Gritty Mono",   [mono([.45, .45, .1]), g({co:.5}), grain(.6, 1.8), sharp(.6)]);
+add("Black & White", "Pale Mono",     [mono(), g({co:-.2, ex:.2, fa:.2})]);
+// Cinematic
+add("Cinematic", "Teal & Orange", [g({co:.18, sa:.05, sh:[-14, 4, 16], hi:[18, 6, -14]})]);
+add("Cinematic", "Blockbuster",   [g({co:.3, sa:.1, sh:[-12, 2, 14], hi:[14, 4, -10]}), vig(.3), grain(.1)]);
+add("Cinematic", "Moonlit",       [g({te:-.35, ex:-.2, co:.2, sa:-.1, sh:[-8, 4, 20]}), vig(.4)]);
+add("Cinematic", "Sunset Epic",   [g({te:.45, co:.25, sa:.2, sh:[10, -4, 10]}), glow(12, .3, .55), vig(.3)]);
+add("Cinematic", "Noir Blue",     [g({te:-.3, sa:-.4, co:.3, sh:[-10, 0, 18]}), vig(.45)]);
+add("Cinematic", "Desert Heat",   [g({te:.5, sa:.1, co:.2, ex:.05, sh:[16, 4, -10]}), vig(.25)]);
+add("Cinematic", "Cold Steel",    [g({te:-.35, sa:-.3, co:.3, sh:[-6, 2, 12]}), grain(.12)]);
+add("Cinematic", "Dune",          [g({te:.3, sa:-.2, co:.15, fa:.2, sh:[12, 6, -4]})]);
+add("Cinematic", "Neon Night",    [g({co:.3, sa:.4, te:-.15, sh:[10, -10, 24], hi:[24, -6, 10]}), glow(14, .45, .5), vig(.35)]);
+add("Cinematic", "Widescreen",    [g({co:.18, sa:.05, sh:[-10, 4, 12], hi:[12, 4, -8]}), fx("bars", {ratio:2.39})]);
+// Mood
+add("Mood", "Warm Glow",     [g({te:.3, ex:.05, sa:.1}), glow(12, .3)]);
+add("Mood", "Cool Breeze",   [g({te:-.3, ex:.05, sa:.05})]);
+add("Mood", "Golden Hour",   [g({te:.45, ex:.08, sa:.18, co:.1, hi:[16, 6, -10]}), glow(14, .35, .5)]);
+add("Mood", "Blue Hour",     [g({te:-.4, ex:-.05, sa:.1, co:.15, sh:[-4, 2, 16]})]);
+add("Mood", "Vivid",         [g({sa:.45, co:.15})]);
+add("Mood", "Muted",         [g({sa:-.35, co:-.05, fa:.08})]);
+add("Mood", "Pastel",        [g({sa:-.1, ex:.18, co:-.2, fa:.15})]);
+add("Mood", "Moody Dark",    [g({ex:-.25, co:.25, sa:-.15, te:-.1}), vig(.5)]);
+add("Mood", "Bright & Airy", [g({ex:.3, co:-.1, sa:-.05, fa:.1}), glow(12, .25)]);
+add("Mood", "Forest Green",  [g({hu:-12, sa:.15, te:-.05, co:.12, sh:[-4, 10, 0]})]);
+// Duotone
+[["Sunset Duo", "#2b1055", "#ff8a3d"], ["Ocean Duo", "#021b3a", "#4fd1c5"], ["Mint Duo", "#0b3d2e", "#c8ffe0"], ["Berry Duo", "#3a0a3f", "#ff6b9d"],
+ ["Cyanotype", "#08203a", "#bfe3ff"], ["Ember", "#1a0500", "#ffb347"], ["Mono Blue", "#0a1a40", "#cfe0ff"], ["Rose Gold", "#3d1f24", "#ffd7c9"],
+ ["Lime Punch", "#14210a", "#e5ff3b"], ["Lavender", "#2a1f4d", "#e6d9ff"], ["Peach", "#4a2418", "#ffe0cc"], ["Midnight", "#04040f", "#7a88ff"]]
+  .forEach(([n, a, b]) => add("Duotone", n, [g({co:.1}), duo(a, b)]));
+// Pop Art
+add("Pop Art", "Pop Poster",   [g({sa:.5, co:.35}), fx("posterize", {n:4})]);
+add("Pop Art", "Warhol Tone",  [fx("posterize", {n:4}), fx("gradmap", {stops:[[0, "#1a1a2e"], [.35, "#e63946"], [.7, "#f1fa8c"], [1, "#ffffff"]]})]);
+add("Pop Art", "Comic Dots",   [g({sa:.4, co:.2}), fx("halftone", {size:9, mode:"rgb"})]);
+add("Pop Art", "Bold Poster",  [fx("posterize", {n:3}), g({sa:.6, co:.3})]);
+add("Pop Art", "Neon Pop",     [g({sa:.7, co:.3}), fx("posterize", {n:5}), glow(8, .3)]);
+add("Pop Art", "Risograph",    [fx("halftone", {size:8, mode:"mono", ink:"#ff3d7f", paper:"#fff4e3"}), grain(.15)]);
+add("Pop Art", "Screen Print", [fx("posterize", {n:4}), fx("gradmap", {stops:[[0, "#14213d"], [.5, "#fca311"], [1, "#fff8ea"]]})]);
+add("Pop Art", "Blueprint",    [fx("edges", {mode:"ink", t:.45, ink:"#e8f1ff", paper:"#103a7a"})]);
+// Sketch & Ink
+add("Sketch & Ink", "Pencil Sketch", [fx("edges", {mode:"sketch", r:7})]);
+add("Sketch & Ink", "Colour Pencil", [fx("edges", {mode:"sketch", r:7, color:.6}), g({sa:.2})]);
+add("Sketch & Ink", "Ink Drawing",   [fx("edges", {mode:"ink", t:.5})]);
+add("Sketch & Ink", "Charcoal",      [fx("edges", {mode:"sketch", r:9}), g({co:.45, ex:-.08}), grain(.35, 1.6)]);
+add("Sketch & Ink", "Comic Ink",     [g({sa:.3, co:.2}), fx("posterize", {n:6}), fx("edges", {mode:"lines", t:.45, w:1.5})]);
+add("Sketch & Ink", "Etching",       [fx("edges", {mode:"ink", t:.35, ink:"#3a2a1a", paper:"#f3e9d2"})]);
+add("Sketch & Ink", "Chalk",         [fx("edges", {mode:"sketch", r:6}), fx("invert", {}), g({te:-.1}), grain(.2)]);
+add("Sketch & Ink", "Blue Pencil",   [fx("edges", {mode:"sketch", r:7}), duo("#1b3a8a", "#ffffff")]);
+// Cartoon
+add("Cartoon", "Toon Classic", [fx("toon", {smooth:55, levels:6, line:65, width:1.5, sat:1.3})]);
+add("Cartoon", "Toon Soft",    [fx("toon", {smooth:70, levels:8, line:40, width:1, sat:1.15, lc:"#5c403b"})]);
+add("Cartoon", "Toon Bold",    [fx("toon", {smooth:45, levels:4, line:85, width:2, sat:1.5})]);
+add("Cartoon", "Manga Ink",    [fx("toon", {smooth:50, levels:4, line:95, width:2, sat:0, lc:"#0d0d12"})]);
+add("Cartoon", "Cel Pop",      [fx("toon", {smooth:45, levels:4, line:85, width:2, sat:1.5}), g({sa:.2, co:.15})]);
+add("Cartoon", "Storybook",    [fx("toon", {smooth:70, levels:8, line:40, width:1, sat:1.15, lc:"#5c403b"}), grain(.12), g({fa:.1, te:.1})]);
+// Artistic
+add("Artistic", "Oil Paint",     [fx("oil", {r:4, lv:24})]);
+add("Artistic", "Thick Oil",     [fx("oil", {r:6, lv:16}), g({sa:.2})]);
+add("Artistic", "Watercolour",   [fx("toon", {smooth:80, levels:10, line:12, width:1, sat:1.1, lc:"#6a5a5a"}), g({fa:.2, ex:.1, co:-.1}), grain(.12, 2)]);
+add("Artistic", "Impressionist", [fx("oil", {r:4, lv:22}), g({sa:.3, co:.1}), glow(8, .2)]);
+add("Artistic", "Emboss",        [fx("emboss", {a:1, mix:.2})]);
+add("Artistic", "Mosaic",        [fx("pixelate", {size:26}), sharp(.4)]);
+add("Artistic", "Halftone Mono", [fx("halftone", {size:8, mode:"mono"})]);
+add("Artistic", "Neon Edges",    [fx("edges", {mode:"neon", t:.55})]);
+add("Artistic", "Dreamy Blur",   [glow(18, .7, .35), g({ex:.1, sa:.1, co:-.1})]);
+add("Artistic", "Orton Glow",    [glow(20, .8, .3), g({co:.2, sa:.15})]);
+// Retro & Pixel
+const PICO = ["#000000", "#1d2b53", "#7e2553", "#008751", "#ab5236", "#5f574f", "#c2c3c7", "#fff1e8", "#ff004d", "#ffa300", "#ffec27", "#00e436", "#29adff", "#83769c", "#ff77a8", "#ffccaa"];
+add("Retro", "Pixel Art",     [fx("pixelate", {size:9}), fx("palette", {colors:PICO, dither:.25})]);
+add("Retro", "Game Boy",      [fx("pixelate", {size:7}), g({co:.2}), fx("palette", {colors:["#0f380f", "#306230", "#8bac0f", "#9bbc0f"], dither:.5})]);
+add("Retro", "CGA",           [fx("pixelate", {size:7}), g({co:.2, sa:.3}), fx("palette", {colors:["#000000", "#55ffff", "#ff55ff", "#ffffff"], dither:.4})]);
+add("Retro", "16-bit",        [fx("pixelate", {size:5}), fx("posterize", {n:6}), g({sa:.3})]);
+add("Retro", "Dot Matrix",    [fx("halftone", {size:7, mode:"mono", ink:"#3df03d", paper:"#031a03"})]);
+add("Retro", "Arcade",        [fx("pixelate", {size:6}), g({sa:.5, co:.3}), fx("glitch", {scan:.35})]);
+add("Retro", "CRT Scanlines", [fx("glitch", {scan:.4, shift:2}), g({sa:.2, co:.15}), vig(.4)]);
+add("Retro", "Teletext",      [fx("pixelate", {size:12}), fx("palette", {colors:["#000000", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"], dither:.2})]);
+// Glitch
+add("Glitch", "RGB Split",       [fx("glitch", {shift:18})]);
+add("Glitch", "Glitch Bands",    [fx("glitch", {shift:8, bands:9, seed:3})]);
+add("Glitch", "VHS Tape",        [fx("blur", {r:1.5}), fx("glitch", {shift:5, bands:4, scan:.25, seed:7}), grain(.3), g({sa:.15, co:.1, te:.1})]);
+add("Glitch", "Chromatic Edge",  [fx("chroma", {a:28})]);
+add("Glitch", "Data Corrupt",    [fx("glitch", {shift:14, bands:16, seed:11}), g({sa:.2})]);
+add("Glitch", "Scanline TV",     [fx("glitch", {scan:.45}), g({co:.15, sa:.1}), vig(.3)]);
+add("Glitch", "Vaporwave",       [g({sa:.2, hu:-10, sh:[16, -6, 24], hi:[24, 6, 16], co:.1}), fx("glitch", {shift:6, scan:.15}), glow(12, .4, .5)]);
+add("Glitch", "Cyber",           [g({te:-.2, sa:.3, co:.3, sh:[0, 10, 26], hi:[26, 0, 18]}), fx("glitch", {shift:5, scan:.2}), glow(10, .4, .5)]);
+// Warp
+add("Warp", "Swirl",      [fx("warp", {type:"swirl", a:1.2})]);
+add("Warp", "Bulge",      [fx("warp", {type:"bulge", a:.7})]);
+add("Warp", "Pinch",      [fx("warp", {type:"pinch", a:.7})]);
+add("Warp", "Ripple",     [fx("warp", {type:"ripple", a:.6})]);
+add("Warp", "Fisheye",    [fx("warp", {type:"fisheye", a:.9})]);
+add("Warp", "Kaleido",    [fx("mirror", {mode:"quad"})]);
+add("Warp", "Mirror",     [fx("mirror", {mode:"h"})]);
+// Light
+add("Light", "Light Leak Warm", [fx("overlay", {blend:"screen", color:"#ff7a30", op:.55, dir:"left"})]);
+add("Light", "Light Leak Pink", [fx("overlay", {blend:"screen", color:"#ff3d9a", op:.5, dir:"right"})]);
+add("Light", "Lens Vignette",   [vig(.6, .4)]);
+add("Light", "Soft Vignette",   [vig(.35, .6)]);
+add("Light", "Tilt-Shift",      [fx("tilt", {focus:.55, band:.12, r:9}), g({sa:.3, co:.12})]);
+add("Light", "Sunbeam",         [fx("overlay", {blend:"screen", color:"#ffd9a0", op:.55, dir:"radial"})]);
+add("Light", "Dreamy Haze",     [glow(22, .6, .3), g({fa:.15, ex:.1, sa:-.05})]);
+add("Light", "Frost",           [g({te:-.3, sa:-.2, ex:.2, co:-.1, fa:.1}), fx("overlay", {blend:"screen", color:"#cfe8ff", op:.3, dir:"top"}), glow(12, .35)]);
+PRESETS.forEach((p, i) => p.id = i);
+const CATS = ["All", ...new Set(PRESETS.map(p => p.cat))];
+
+/* ================= pipeline ================= */
+function runSteps(d, w, h, steps){
+  const s = Math.min(w, h)/900;
+  for (const [name, p] of steps) FX[name](d, w, h, p || {}, s);
+}
+function runLayer(d, w, h, preset, amt){
+  if (amt <= 0) return;
+  const before = amt < 100 ? d.slice() : null;
+  runSteps(d, w, h, preset.steps);
+  if (before){ const k = amt/100; for (let i = 0; i < d.length; i++) d[i] = before[i] + (d[i] - before[i])*k; }
+}
+function adjustSteps(a){
+  const steps = [];
+  if (a.bright || a.contrast || a.sat || a.warm) steps.push(g({ex:a.bright/100*.7, co:a.contrast/100*.7, sa:a.sat/100, te:a.warm/100}));
+  if (a.vig) steps.push(vig(a.vig/100*.8, .45));
+  return steps;
+}
+function runPipeline(d, w, h, layers, adj){
+  for (const L of layers) runLayer(d, w, h, L.preset, L.amt);
+  const st = adjustSteps(adj); if (st.length) runSteps(d, w, h, st);
+}
+
+/* ================= app ================= */
+const PREVIEW_MAX = 900, THUMB = 300, MAX_FILE_MB = 30, MAX_MP = 50;
+const state = {source:null, base:null, thumbBase:null, layers:[], adj:{bright:0, contrast:0, sat:0, warm:0, vig:0}, view:"result", cat:"All", q:""};
+let runToken = 0, timer = 0, galleryToken = 0;
+
+function note(text, isErr){ const n = $("note"); n.hidden = !text; n.textContent = text || ""; n.classList.toggle("err", !!isErr); }
+function scaled(src, sw, sh, maxSide, cover){
+  const c = document.createElement("canvas"), x = c.getContext("2d", {willReadFrequently:true});
+  if (cover){                                          // square cover crop
+    c.width = c.height = maxSide; const f = Math.max(maxSide/sw, maxSide/sh);
+    x.fillStyle = "#fff"; x.fillRect(0, 0, maxSide, maxSide); x.imageSmoothingQuality = "high";
+    x.drawImage(src, (maxSide - sw*f)/2, (maxSide - sh*f)/2, sw*f, sh*f);
+  } else {
+    const f = Math.min(1, maxSide/Math.max(sw, sh)); c.width = Math.max(1, Math.round(sw*f)); c.height = Math.max(1, Math.round(sh*f));
+    x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.imageSmoothingQuality = "high"; x.drawImage(src, 0, 0, c.width, c.height);
+  }
+  return {canvas:c, ctx:x};
+}
+function sampleImage(){                                 // built-in picture so thumbnails make sense before a photo is loaded
+  const c = document.createElement("canvas"); c.width = c.height = 400; const x = c.getContext("2d");
+  let gr = x.createLinearGradient(0, 0, 0, 400); gr.addColorStop(0, "#5aa7ef"); gr.addColorStop(.6, "#f6d6a8"); gr.addColorStop(1, "#f2b8a0");
+  x.fillStyle = gr; x.fillRect(0, 0, 400, 400);
+  x.fillStyle = "#fff6d6"; x.beginPath(); x.arc(290, 110, 44, 0, 7); x.fill();
+  x.fillStyle = "#6a7fa8"; x.beginPath(); x.moveTo(0, 260); x.lineTo(110, 150); x.lineTo(210, 250); x.lineTo(300, 170); x.lineTo(400, 270); x.lineTo(400, 400); x.lineTo(0, 400); x.fill();
+  x.fillStyle = "#3f7d52"; x.beginPath(); x.moveTo(0, 330); x.quadraticCurveTo(120, 270, 230, 320); x.quadraticCurveTo(320, 350, 400, 300); x.lineTo(400, 400); x.lineTo(0, 400); x.fill();
+  x.fillStyle = "#e0553f"; x.fillRect(80, 290, 46, 60); x.fillStyle = "#f6c9a0"; x.beginPath(); x.arc(103, 276, 17, 0, 7); x.fill();
+  x.fillStyle = "#2a2233"; x.beginPath(); x.arc(103, 270, 17, Math.PI, 0); x.fill();
+  x.fillStyle = "#fff"; x.fillRect(250, 300, 70, 46); x.fillStyle = "#3b6fd6"; x.fillRect(250, 300, 70, 12);
+  return c;
+}
+
+/* --- loading a photo --- */
+function setSource(bitmap, name){
+  state.source = {bitmap, name};
+  const pv = scaled(bitmap, bitmap.width, bitmap.height, PREVIEW_MAX);
+  state.base = pv.ctx.getImageData(0, 0, pv.canvas.width, pv.canvas.height);
+  const th = scaled(bitmap, bitmap.width, bitmap.height, THUMB, true); state.thumbBase = th.ctx.getImageData(0, 0, THUMB, THUMB);
+  const w = pv.canvas.width, h = pv.canvas.height;
+  for (const id of ["cOrig", "cOut"]){ $(id).width = w; $(id).height = h; }
+  $("cOrig").getContext("2d").drawImage(pv.canvas, 0, 0);
+  const cmp = $("cmp"); cmp.style.aspectRatio = String(w/h); cmp.style.width = `min(100%, ${(60*w/h).toFixed(1)}vh)`;
+  $("drop").hidden = true; $("viewer").hidden = false; $("bExport").disabled = false;
+  note(""); setView("result"); render(0); refreshThumbs();
+}
+async function loadFile(file){
+  if (!file || !file.type.startsWith("image/")){ note("That file isn't an image.", true); return; }
+  if (file.size > MAX_FILE_MB*1048576){ note(`That file is larger than ${MAX_FILE_MB} MB.`, true); return; }
+  try {
+    const bmp = await createImageBitmap(file);
+    if (bmp.width*bmp.height > MAX_MP*1e6){ note(`That image is over ${MAX_MP} megapixels.`, true); return; }
+    setSource(bmp, file.name.replace(/\.[^.]+$/, "") || "photo");
+  } catch { note("This browser couldn't read that image.", true); }
+}
+
+/* --- main preview --- */
+function render(delay = 110){
+  if (!state.base) return;
+  clearTimeout(timer); const token = ++runToken; $("busy").hidden = false;
+  timer = setTimeout(() => {
+    if (token !== runToken) return;
+    const b = state.base, out = new ImageData(new Uint8ClampedArray(b.data), b.width, b.height);
+    try { runPipeline(out.data, b.width, b.height, state.layers, state.adj); } catch (e) { note("Couldn't apply that filter: " + e.message, true); }
+    if (token !== runToken) return;
+    $("cOut").getContext("2d").putImageData(out, 0, 0); $("busy").hidden = true;
+  }, delay);
+}
+function setView(v){
+  state.view = v;
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v));
+  updateSplit();
+}
+function updateSplit(){
+  const v = state.view, s = v === "split" ? +$("split").value : v === "orig" ? 100 : 0, split = v === "split";
+  $("cOrig").style.clipPath = `inset(0 ${100 - s}% 0 0)`;
+  $("split").hidden = !split; $("div").hidden = !split; $("div").style.left = s + "%";
+  $("tagL").hidden = !(split || v === "orig"); $("tagR").hidden = !(split || v === "result");
+}
+
+/* --- layers --- */
+function renderLayers(){
+  const box = $("layers"); box.replaceChildren();
+  if (!state.layers.length){ const e = document.createElement("div"); e.className = "info"; e.textContent = "Pick a filter from the gallery."; box.append(e); }
+  state.layers.forEach((L, i) => {
+    const row = document.createElement("div"); row.className = "layer";
+    const t = document.createElement("div"); t.className = "lt";
+    const nm = document.createElement("span"); nm.textContent = L.preset.name;
+    const val = document.createElement("span"); val.className = "info"; val.textContent = L.amt + "%";
+    const x = document.createElement("button"); x.textContent = "✕"; x.title = "Remove filter";
+    x.onclick = () => { state.layers.splice(i, 1); renderLayers(); markTiles(); render(); };
+    t.append(nm, val, x);
+    const r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 100; r.value = L.amt; r.setAttribute("aria-label", L.preset.name + " intensity");
+    r.oninput = () => { L.amt = +r.value; val.textContent = L.amt + "%"; render(); };
+    row.append(t, r); box.append(row);
+  });
+}
+function pick(preset){
+  if ($("stack").checked){
+    const at = state.layers.findIndex(L => L.preset === preset);
+    if (at >= 0) state.layers.splice(at, 1);
+    else { if (state.layers.length >= 3) state.layers.shift(); state.layers.push({preset, amt:100}); }
+  } else state.layers = state.layers.length === 1 && state.layers[0].preset === preset ? [] : [{preset, amt:100}];
+  renderLayers(); markTiles(); render(0);
+  if (!state.base) note("Add a photo to see this filter applied.");
+}
+
+/* --- gallery --- */
+function visiblePresets(){
+  const q = state.q.trim().toLowerCase();
+  return PRESETS.filter(p => (state.cat === "All" || p.cat === state.cat) && (!q || (p.name + " " + p.cat).toLowerCase().includes(q)));
+}
+function buildGallery(){
+  const cats = $("cats"); cats.replaceChildren();
+  for (const c of CATS){
+    const b = document.createElement("button"); b.className = "cat"; b.textContent = c; b.setAttribute("aria-pressed", c === state.cat);
+    b.onclick = () => { state.cat = c; buildGallery(); }; cats.append(b);
+  }
+  const list = visiblePresets(), grid = $("grid"); grid.replaceChildren();
+  $("count").textContent = `${list.length} filter${list.length === 1 ? "" : "s"}`;
+  if (!list.length){ const e = document.createElement("div"); e.className = "empty"; e.textContent = "No filters match your search."; grid.append(e); }
+  for (const p of list){
+    const b = document.createElement("button"); b.className = "tile"; b.title = `${p.cat}: ${p.name}`; b._p = p;
+    const cv = document.createElement("canvas"); cv.width = cv.height = THUMB; const sp = document.createElement("span"); sp.textContent = p.name;
+    b.append(cv, sp); b.onclick = () => pick(p); grid.append(b);
+  }
+  markTiles(); refreshThumbs();
+}
+function markTiles(){ $("grid").querySelectorAll(".tile").forEach(t => t.setAttribute("aria-pressed", state.layers.some(L => L.preset === t._p))); }
+let sampleBase = null;
+function refreshThumbs(){                                // render thumbnails one at a time so the page stays responsive
+  const token = ++galleryToken;
+  if (!sampleBase){ const s = scaled(sampleImage(), 400, 400, THUMB, true); sampleBase = s.ctx.getImageData(0, 0, THUMB, THUMB); }
+  const base = state.thumbBase || sampleBase, tiles = [...$("grid").querySelectorAll(".tile")];
+  let i = 0;
+  const step = () => {
+    if (token !== galleryToken) return;
+    const t0 = performance.now();
+    while (i < tiles.length && performance.now() - t0 < 14){
+      const t = tiles[i++], img = new ImageData(new Uint8ClampedArray(base.data), THUMB, THUMB);
+      try { runSteps(img.data, THUMB, THUMB, t._p.steps); } catch (e) { console.error(t._p.name, e); }
+      t.querySelector("canvas").getContext("2d").putImageData(img, 0, 0);
+    }
+    if (i < tiles.length) setTimeout(step, 0);
+  };
+  step();
+}
+
+/* --- wiring --- */
+function syncAdjust(){ for (const [id, k] of [["aBright","bright"], ["aContrast","contrast"], ["aSat","sat"], ["aWarm","warm"], ["aVig","vig"]]){ $(id).value = state.adj[k]; $(id + "v").textContent = state.adj[k]; } }
+for (const [id, k] of [["aBright","bright"], ["aContrast","contrast"], ["aSat","sat"], ["aWarm","warm"], ["aVig","vig"]])
+  $(id).oninput = e => { state.adj[k] = +e.target.value; $(id + "v").textContent = e.target.value; render(); };
+$("bReset").onclick = () => { state.layers = []; Object.assign(state.adj, {bright:0, contrast:0, sat:0, warm:0, vig:0}); syncAdjust(); renderLayers(); markTiles(); render(0); note(""); };
+$("q").oninput = e => { state.q = e.target.value; buildGallery(); };
+$("stack").onchange = () => { if (!$("stack").checked && state.layers.length > 1) state.layers = state.layers.slice(-1); renderLayers(); markTiles(); render(0); };
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => setView(b.dataset.v));
+$("split").oninput = updateSplit;
+$("bChange").onclick = () => $("file").click();
+$("drop").onclick = () => $("file").click();
+$("file").onchange = e => { loadFile(e.target.files[0]); e.target.value = ""; };
+["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $("drop").classList.remove("over"); }));
+document.addEventListener("drop", e => loadFile(e.dataTransfer.files[0]));
+window.addEventListener("paste", e => { const f = e.clipboardData && e.clipboardData.files[0]; if (f) loadFile(f); });
+
+$("bExport").onclick = async () => {
+  if (!state.source) return;
+  const btn = $("bExport"); btn.disabled = true; note("Rendering full-size image…");
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const fmt = $("xfmt").value, mime = "image/" + fmt, bm = state.source.bitmap;
+    const big = scaled(bm, bm.width, bm.height, +$("xsize").value), W = big.canvas.width, H = big.canvas.height;
+    const img = big.ctx.getImageData(0, 0, W, H);
+    runPipeline(img.data, W, H, state.layers, state.adj);
+    big.ctx.putImageData(img, 0, 0);
+    const blob = await new Promise(r => big.canvas.toBlob(r, mime, .92));
+    if (!blob || blob.type !== mime) throw new Error(`This browser can't save ${fmt.toUpperCase()}. Try PNG or JPEG.`);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `${state.source.name}-filtered.${fmt === "jpeg" ? "jpg" : fmt}`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    note(`Saved ${W}×${H} ${fmt.toUpperCase()}.`);
+  } catch (e) { note(e.message, true); }
+  btn.disabled = false;
+};
+
+buildGallery(); renderLayers(); syncAdjust();
+</script>
+</body>
+</html>

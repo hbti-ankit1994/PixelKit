@@ -1,4 +1,4 @@
-# PixelKit · Toolbox
+# PixelKit · Private In-Browser Photo Suite
 
 <p align="center">
   <img src="assets/icon.svg" alt="PixelKit Icon" width="140" height="140">
@@ -63,4 +63,5 @@ npx serve .
 - `assets/icon-512.png`: 512×512 App Icon
 - `assets/icon-192.png`: 192×192 PWA / Android Icon
 - `assets/apple-touch-icon.png`: 180×180 iOS Touch Icon
+- `assets/og-image.png`: 1200×630 Open Graph & Social Preview Banner
 - `favicon.ico`: Multi-size desktop browser icon (16×16, 32×32, 48×48)

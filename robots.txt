@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hbti-ankit1994.github.io/PixelKit/sitemap.xml

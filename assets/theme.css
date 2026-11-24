@@ -1,4 +1,4 @@
-/* Toolbox shared theme.
+/* PixelKit shared theme.
    Loaded AFTER each tool's own <style>, so every tool inherits the home page's look
    (top bar, glow background, banner heading, cards, buttons) and its own accent colour.
    Colours stay as plain hex because some tools read --accent / --muted from JavaScript. */
